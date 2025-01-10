@@ -1,4 +1,7 @@
 
+using ItemProposalAPI.DataAccess;
+using Microsoft.EntityFrameworkCore;
+
 namespace ItemProposalAPI
 {
     public class Program
@@ -13,6 +16,10 @@ namespace ItemProposalAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContext<ApplicationDbContext>(dbContextOptions =>
+            {
+                dbContextOptions.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
 
             var app = builder.Build();
 
