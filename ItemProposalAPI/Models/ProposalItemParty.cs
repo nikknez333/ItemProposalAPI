@@ -1,4 +1,7 @@
-﻿namespace ItemProposalAPI.Models
+﻿
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ItemProposalAPI.Models
 {
     public class ProposalItemParty
     {
@@ -6,6 +9,7 @@
         public int ItemId { get; set; }
         public int PartyId { get; set; }
         public PaymentType PaymentType { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal PaymentAmount { get; set; }
 
         //navigation properties
@@ -15,7 +19,8 @@
 
     public enum PaymentType
     {
-        Percentage = 0,
+        Not_Set = 0,
+        Percentage,
         Fixed
     }
 }

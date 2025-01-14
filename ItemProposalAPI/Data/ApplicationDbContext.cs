@@ -37,11 +37,13 @@ namespace ItemProposalAPI.DataAccess
             modelBuilder.Entity<ProposalItemParty>()
                 .HasOne(pip => pip.Proposal)
                 .WithMany(p => p.ProposalItemParties)
-                .HasForeignKey(pip => pip.ProposalId);
+                .HasForeignKey(pip => pip.ProposalId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ProposalItemParty>()
                 .HasOne(pip => pip.ItemParty)
                 .WithMany(ip => ip.ProposalItemParties)
-                .HasForeignKey(pip => new { pip.ItemId, pip.PartyId });
+                .HasForeignKey(pip => new { pip.ItemId, pip.PartyId })
+                .OnDelete(DeleteBehavior.Restrict);
 
             //recursive relationship between Proposal and Counter Proposal
             modelBuilder.Entity<Proposal>()
@@ -55,6 +57,21 @@ namespace ItemProposalAPI.DataAccess
                     "CK_Proposal_Comment_Required",
                     "CounterToProposalId is NULL OR LEN(Comment) > 0"
                 ));
+
+            //value conversions for enums to string
+            modelBuilder.Entity<Item>()
+                .Property(i => i.Share_Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Proposal>()
+                .Property(p => p.Proposal_Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<ProposalItemParty>()
+                .Property(pip => pip.PaymentType)
+                .HasConversion<string>();
+
+            //Add indexes to frequently queried data to boost query performance
 
         }
     }
