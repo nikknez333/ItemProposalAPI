@@ -9,8 +9,8 @@ namespace ItemProposalAPI.Models
         public string Name { get; set; } = string.Empty;
 
         //navigation properties
-        public ICollection<User>? Users { get; set; }
+        public ICollection<User>? Users { get; set; } = new List<User>();
 
-        public ICollection<ItemParty>? ItemParties { get; set; }
+        public ICollection<ItemParty>? ItemParties { get; set; } = new List<ItemParty>();
     }
 }

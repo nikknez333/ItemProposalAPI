@@ -23,39 +23,32 @@ namespace ItemProposalAPI.Repository.Repositories
             return await _dbContext.Set<TEntity>().FindAsync(id);
         }
 
-        public virtual async Task<TEntity> CreateAsync(TEntity entity)
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
             await _dbContext.Set<TEntity>().AddAsync(entity);
             return entity;
         }
 
-        public virtual async Task<TEntity?> UpdateAsync(TPKey id, TEntity entity)
+        public virtual TEntity? UpdateAsync(TEntity entity)
         {
-            var model = await _dbContext.Set<TEntity>().FindAsync(id);
-
-            if (model == null)
-            {
-                return null;
-            }
-
             _dbContext.Set<TEntity>().Attach(entity);
             _dbContext.Set<TEntity>().Entry(entity).State = EntityState.Modified;
 
-            return model;
+            return entity;
         }
 
         public virtual async Task<TEntity?> DeleteAsync(TPKey id)
         {
-            var model = await _dbContext.Set<TEntity>().FindAsync(id);
+            var existingModel = await _dbContext.Set<TEntity>().FindAsync(id);
 
-            if (model == null)
+            if (existingModel == null)
             {
                 return null;
             }
 
-            _dbContext.Set<TEntity>().Remove(model);
+            _dbContext.Set<TEntity>().Remove(existingModel);
 
-            return model;
+            return existingModel;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace ItemProposalAPI.Models
         public string Username { get; set; } = string.Empty; 
         
         //navigation property
-        public Party? Party { get; set; }
-        public ICollection<Proposal>? Proposals { get; set; }
+        public Party? Party { get; set; } 
+        public ICollection<Proposal>? Proposals { get; set; } = new List<Proposal>();
     }
 }

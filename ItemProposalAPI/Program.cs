@@ -1,5 +1,7 @@
 
 using ItemProposalAPI.DataAccess;
+using ItemProposalAPI.UnitOfWorkPattern.Interface;
+using ItemProposalAPI.UnitOfWorkPattern.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
 namespace ItemProposalAPI
@@ -20,6 +22,7 @@ namespace ItemProposalAPI
             {
                 dbContextOptions.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             var app = builder.Build();
 

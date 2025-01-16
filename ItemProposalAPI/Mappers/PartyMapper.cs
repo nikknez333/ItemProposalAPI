@@ -22,7 +22,7 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static Party ToPartyFromUpdateDto(this Party party, UpdatePartyRequestDto updatePartyDto)
+        public static Party ToPartyFromUpdateDto(this UpdatePartyRequestDto updatePartyDto, Party party)
         {
             party.Name = updatePartyDto.Name;
 

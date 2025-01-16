@@ -24,7 +24,7 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static User ToUserFromUpdateDto(this User user, UpdateUserRequestDto updateUserDto)
+        public static User ToUserFromUpdateDto(this UpdateUserRequestDto updateUserDto, User user)
         {
            user.Username = updateUserDto.Username;
 

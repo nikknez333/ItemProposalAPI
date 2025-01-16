@@ -8,6 +8,6 @@
         //navigation properties
         public Item Item { get; set; }
         public Party Party { get; set; }
-        public ICollection<ProposalItemParty> ProposalItemParties { get; set; }
+        public ICollection<ProposalItemParty> ProposalItemParties { get; set; } = new List<ProposalItemParty>();
     }
 }

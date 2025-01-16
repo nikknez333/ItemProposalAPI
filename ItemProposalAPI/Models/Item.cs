@@ -11,8 +11,8 @@ namespace ItemProposalAPI.Models
         public Status Share_Status { get; set; }
 
         //navigation properties
-        public ICollection<Proposal>? Proposals { get; set; }
-        public ICollection<ItemParty>? ItemParties { get; set; }
+        public ICollection<Proposal>? Proposals { get; set; } = new List<Proposal>();
+        public ICollection<ItemParty>? ItemParties { get; set; } = new List<ItemParty>();
     }
 
     public enum Status {

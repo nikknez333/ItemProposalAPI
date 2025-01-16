@@ -1,11 +1,11 @@
 ﻿using ItemProposalAPI.DataAccess;
 using ItemProposalAPI.Repository.Interfaces.IEntities;
 using ItemProposalAPI.Repository.Repositories;
-using ItemProposalAPI.UnitOfWork.Interface;
+using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 
-namespace ItemProposalAPI.UnitOfWork.UnitOfWork
+namespace ItemProposalAPI.UnitOfWorkPattern.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
@@ -78,7 +78,9 @@ namespace ItemProposalAPI.UnitOfWork.UnitOfWork
 
         public async Task RollbackAsync()
         {
-            await _dbContext.DisposeAsync();
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null!;
         }
 
         public async Task SaveChangesAsync()

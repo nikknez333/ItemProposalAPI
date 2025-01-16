@@ -1,6 +1,6 @@
 ﻿using ItemProposalAPI.Repository.Interfaces.IEntities;
 
-namespace ItemProposalAPI.UnitOfWork.Interface
+namespace ItemProposalAPI.UnitOfWorkPattern.Interface
 {
     public interface IUnitOfWork : IDisposable
     { 

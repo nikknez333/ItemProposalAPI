@@ -28,7 +28,7 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static Item ToItemFromUpdateDto(this Item item, UpdateItemRequestDto updateItemDto)
+        public static Item ToItemFromUpdateDto(this UpdateItemRequestDto updateItemDto, Item item)
         {
             item.Name = updateItemDto.Name;
             item.Creation_Date = updateItemDto.Creation_Date;

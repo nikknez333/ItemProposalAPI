@@ -29,7 +29,7 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static Proposal ToProposalFromUpdateDto(this Proposal proposal, UpdateProposalRequestDto updateProposalDto)
+        public static Proposal ToProposalFromUpdateDto(this UpdateProposalRequestDto updateProposalDto, Proposal proposal)
         {
             proposal.Created_At = updateProposalDto.Created_At;
             proposal.Comment = updateProposalDto.Comment;

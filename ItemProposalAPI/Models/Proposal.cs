@@ -17,11 +17,11 @@ namespace ItemProposalAPI.Models
         //navigation properties
         public User User { get; set; }
         public Item Item { get; set; }
-        public ICollection<ProposalItemParty> ProposalItemParties { get; set; }
+        public ICollection<ProposalItemParty> ProposalItemParties { get; set; } = new List<ProposalItemParty>();
 
         //navigation properties for recursive relationship
         public Proposal InitialProposal { get; set; }
-        public ICollection<Proposal>? CounterProposals { get; set; }
+        public ICollection<Proposal>? CounterProposals { get; set; } = new List<Proposal>();
     }
 
     public enum Proposal_Status

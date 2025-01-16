@@ -6,9 +6,9 @@
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<TEntity?> GetByIdAsync(TPKey id);
         //Generic POST
-        Task<TEntity> CreateAsync(TEntity entity);
+        Task<TEntity> AddAsync(TEntity entity);
         //Generic PUT(UPDATE)
-        Task<TEntity?> UpdateAsync(TPKey id, TEntity entity);
+        TEntity? UpdateAsync(TEntity entity);
         //Generic DELETE
         Task<TEntity?> DeleteAsync(TPKey id);
     }
