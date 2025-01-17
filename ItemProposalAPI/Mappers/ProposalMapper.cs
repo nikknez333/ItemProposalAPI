@@ -10,7 +10,7 @@ namespace ItemProposalAPI.Mappers
             return new ProposalDto
             {
                 Id = proposal.Id,
-                UserId = proposal.User.Id,
+                UserId = proposal.UserId,
                 ItemId = proposal.ItemId,
                 Created_At = proposal.Created_At,
                 Comment = proposal.Comment,
@@ -19,21 +19,19 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static Proposal ToProposalFromCreateDto(this CreateProposalRequestDto createProposalDto)
+        public static Proposal ToProposalFromCreateDto(this CreateProposalRequestDto createProposalDto, int userId, int itemId)
         {
             return new Proposal
             {
-                Created_At = createProposalDto.Created_At,
+                UserId = userId,
+                ItemId = itemId,
                 Comment = createProposalDto.Comment,
-                Proposal_Status = createProposalDto.Proposal_Status
             };
         }
 
         public static Proposal ToProposalFromUpdateDto(this UpdateProposalRequestDto updateProposalDto, Proposal proposal)
         {
-            proposal.Created_At = updateProposalDto.Created_At;
             proposal.Comment = updateProposalDto.Comment;
-            proposal.Proposal_Status = updateProposalDto.Proposal_Status;
 
             return proposal;
         }

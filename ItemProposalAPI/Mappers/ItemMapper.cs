@@ -23,15 +23,12 @@ namespace ItemProposalAPI.Mappers
             return new Item
             {
                 Name = createItemDto.Name,
-                Creation_Date = createItemDto.Creation_Date,
-                Share_Status = createItemDto.Share_Status
             };
         }
 
         public static Item ToItemFromUpdateDto(this UpdateItemRequestDto updateItemDto, Item item)
         {
             item.Name = updateItemDto.Name;
-            item.Creation_Date = updateItemDto.Creation_Date;
 
             return item;
         }

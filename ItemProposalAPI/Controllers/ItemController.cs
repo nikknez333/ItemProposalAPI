@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ItemProposalAPI.Controllers
 {
-    [Route("api/item")]
+    [Route("api/items")]
     [ApiController]
     public class ItemController : ControllerBase
     {
@@ -22,9 +22,9 @@ namespace ItemProposalAPI.Controllers
         {
             var items = await _unitOfWork.ItemRepository.GetAllAsync();
 
-            var itemsDTOs = items.Select(i => i.ToItemDto());
+            var itemDTOs = items.Select(i => i.ToItemDto());
 
-            return Ok(items);
+            return Ok(itemDTOs);
         }
 
         [HttpGet("{id}")]

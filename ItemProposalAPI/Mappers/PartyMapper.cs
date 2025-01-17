@@ -11,6 +11,7 @@ namespace ItemProposalAPI.Mappers
             {
                 Id = partyModel.Id,
                 Name = partyModel.Name,
+                Users = partyModel.Users!.Select(u => u.ToUserWithoutProposalsDto()).ToList()
             };
         }
 

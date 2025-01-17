@@ -1,8 +1,10 @@
 
 using ItemProposalAPI.DataAccess;
+using ItemProposalAPI.EnumSchemaFilter;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using ItemProposalAPI.UnitOfWorkPattern.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace ItemProposalAPI
 {
@@ -14,10 +16,18 @@ namespace ItemProposalAPI
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+            });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(s =>
+            {
+                s.SchemaFilter<EnumSchemFilter>();
+            });
+
             builder.Services.AddDbContext<ApplicationDbContext>(dbContextOptions =>
             {
                 dbContextOptions.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));

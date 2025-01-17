@@ -3,10 +3,11 @@ using ItemProposalAPI.Mappers;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 
 namespace ItemProposalAPI.Controllers
 {
-    [Route("api/proposal")]
+    [Route("api/proposals")]
     [ApiController]
     public class ProposalController : ControllerBase
     {
@@ -24,7 +25,7 @@ namespace ItemProposalAPI.Controllers
 
             var proposalDTOs = proposals.Select(p => p.ToProposalDto());
 
-            return Ok(proposals);
+            return Ok(proposalDTOs);
         }
 
         [HttpGet("{id}")]
@@ -37,12 +38,18 @@ namespace ItemProposalAPI.Controllers
             return Ok(proposal.ToProposalDto());
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add([FromBody] CreateProposalRequestDto proposalDto)
+        [HttpPost("{userId}/{itemId}")]
+        public async Task<IActionResult> Add([FromRoute] int userId, [FromRoute] int itemId, [FromBody] CreateProposalRequestDto proposalDto)
         {
             using var transaction = _unitOfWork.BeginTransactionAsync();
 
-            var proposalModel = proposalDto.ToProposalFromCreateDto();
+            if (await _unitOfWork.UserRepository.GetByIdAsync(userId) == null)
+                return BadRequest($"User with Id:{userId} does not exist");
+
+            if (await _unitOfWork.ItemRepository.GetByIdAsync(itemId) == null)
+                return BadRequest($"Item with Id:{itemId} does not exist");
+
+            var proposalModel = proposalDto.ToProposalFromCreateDto(userId, itemId);
 
             await _unitOfWork.ProposalRepository.AddAsync(proposalModel);
 
@@ -77,6 +84,9 @@ namespace ItemProposalAPI.Controllers
             var deletedProposal = await _unitOfWork.ProposalRepository.DeleteAsync(id);
             if(deletedProposal == null)
                 return NotFound();
+
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
 
             return NoContent();
         }

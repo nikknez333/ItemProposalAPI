@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ItemProposalAPI.DTOs.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace ItemProposalAPI.DTOs.Party
 {
@@ -6,5 +7,6 @@ namespace ItemProposalAPI.DTOs.Party
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public List<UserWithoutProposalsDto> Users { get; set; } = new List<UserWithoutProposalsDto>();
     }
 }

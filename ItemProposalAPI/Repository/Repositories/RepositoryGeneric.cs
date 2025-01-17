@@ -1,6 +1,7 @@
 ﻿using ItemProposalAPI.DataAccess;
 using ItemProposalAPI.Repository.Interfaces.IRepositoryGeneric;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ItemProposalAPI.Repository.Repositories
 {
@@ -13,14 +14,28 @@ namespace ItemProposalAPI.Repository.Repositories
             _dbContext = dbContext;
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
         {
-            return await _dbContext.Set<TEntity>().ToListAsync();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.ToListAsync();
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(TPKey id)
+        public virtual async Task<TEntity?> GetByIdAsync(TPKey id, params Expression<Func<TEntity, object>>[] includes)
         {
-            return await _dbContext.Set<TEntity>().FindAsync(id);
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.FirstOrDefaultAsync(entity => EF.Property<TPKey>(entity, "Id")!.Equals(id));
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity entity)

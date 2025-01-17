@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ItemProposalAPI.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -20,17 +20,17 @@ namespace ItemProposalAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            var users = await _unitOfWork.UserRepository.GetAllAsync(u => u.Proposals!);
 
-            var usersDTO = users.Select(u => u.ToUserDto());
+            var userDTOs = users.Select(u => u.ToUserDto());
 
-            return Ok(users);
+            return Ok(userDTOs);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id, u => u.Proposals!);
 
             if (user == null)
                 return NotFound();
@@ -39,16 +39,11 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromQuery] int? partyId, [FromBody] CreateUserRequestDto userDto)
+        public async Task<IActionResult> Add([FromBody] CreateUserRequestDto userDto)
         {
             using var transaction = _unitOfWork.BeginTransactionAsync();
 
             var userModel = userDto.ToUserFromCreateDto();
-
-            if(partyId.HasValue)
-            {
-                userModel.PartyId = partyId.Value;
-            }
 
             await _unitOfWork.UserRepository.AddAsync(userModel);
 

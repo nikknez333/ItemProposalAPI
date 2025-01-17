@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ItemProposalAPI.Controllers
 {
-    [Route("api/party")]
+    [Route("api/parties")]
     [ApiController]
     public class PartyController : ControllerBase
     {
@@ -20,17 +20,17 @@ namespace ItemProposalAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var parties = await _unitOfWork.PartyRepository.GetAllAsync();
+            var parties = await _unitOfWork.PartyRepository.GetAllAsync(p => p.Users!);
 
             var partyDTOs = parties.Select(p => p.ToPartyDto());
 
-            return Ok(parties);
+            return Ok(partyDTOs);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var party = await _unitOfWork.PartyRepository.GetByIdAsync(id);
+            var party = await _unitOfWork.PartyRepository.GetByIdAsync(id, p => p.Users!);
             if (party == null)
                 return NotFound();
 
