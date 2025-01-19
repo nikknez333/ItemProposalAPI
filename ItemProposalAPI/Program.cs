@@ -26,6 +26,17 @@ namespace ItemProposalAPI
             builder.Services.AddSwaggerGen(s =>
             {
                 s.SchemaFilter<EnumSchemFilter>();
+
+                s.MapType<DateTime>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+                {
+                    Type = "string",
+                    Format = "date-time"
+                });
+                s.MapType<DateTime?>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+                {
+                    Type = "string",
+                    Format = "date-time"
+                });
             });
 
             builder.Services.AddDbContext<ApplicationDbContext>(dbContextOptions =>

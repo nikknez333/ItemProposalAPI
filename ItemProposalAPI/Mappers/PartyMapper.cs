@@ -1,5 +1,6 @@
 ﻿using ItemProposalAPI.DTOs.Party;
 using ItemProposalAPI.Models;
+using System.Net.NetworkInformation;
 
 namespace ItemProposalAPI.Mappers
 {
@@ -12,6 +13,15 @@ namespace ItemProposalAPI.Mappers
                 Id = partyModel.Id,
                 Name = partyModel.Name,
                 Users = partyModel.Users!.Select(u => u.ToUserWithoutProposalsDto()).ToList()
+            };
+        }
+
+        public static PartyWithoutUsersDto ToPartyWithoutUsersDto(this Party partyModel)
+        {
+            return new PartyWithoutUsersDto
+            {
+                Id = partyModel.Id,
+                Name = partyModel.Name
             };
         }
 

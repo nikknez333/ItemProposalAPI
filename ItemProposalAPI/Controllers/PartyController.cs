@@ -20,7 +20,7 @@ namespace ItemProposalAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var parties = await _unitOfWork.PartyRepository.GetAllAsync(p => p.Users!);
+            var parties = await _unitOfWork.PartyRepository.GetAllAsync(p => p.Users!, p => p.ItemParties!);
 
             var partyDTOs = parties.Select(p => p.ToPartyDto());
 
@@ -35,6 +35,22 @@ namespace ItemProposalAPI.Controllers
                 return NotFound();
 
             return Ok(party.ToPartyDto());
+        }
+
+        [HttpGet("{partyId}/items")]
+        public async Task<IActionResult> GetPartyItems([FromRoute] int partyId)
+        {
+            var party = await _unitOfWork.PartyRepository.GetByIdAsync(partyId);
+            if (party == null)
+                return BadRequest($"Party with id:{partyId} does not exist.");
+
+            var partyitems = await _unitOfWork.ItemPartyRepository.GetPartyItems(partyId, null);
+            if (partyitems == null)
+                return NotFound($"Party with id:{partyId} does not own shares of any item.");
+
+            var partyItemDTOs = partyitems.Select(i => i.ToItemWithoutProposalsDto());
+
+            return Ok(partyItemDTOs);
         }
 
         [HttpPost]

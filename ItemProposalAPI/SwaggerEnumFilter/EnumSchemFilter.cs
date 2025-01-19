@@ -15,6 +15,9 @@ namespace ItemProposalAPI.EnumSchemaFilter
                     .ToList()
                     .ForEach(name => schema.Enum.Add(new OpenApiString($"{name}")));
             }
+
+            schema.Type = "string";
+            schema.Format = null;
         }
     }
 }

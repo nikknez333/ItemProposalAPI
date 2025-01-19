@@ -20,7 +20,7 @@ namespace ItemProposalAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var items = await _unitOfWork.ItemRepository.GetAllAsync();
+            var items = await _unitOfWork.ItemRepository.GetAllAsync(i => i.Proposals!);
 
             var itemDTOs = items.Select(i => i.ToItemDto());
 
@@ -30,11 +30,27 @@ namespace ItemProposalAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var item = await _unitOfWork.ItemRepository.GetByIdAsync(id);
+            var item = await _unitOfWork.ItemRepository.GetByIdAsync(id, i => i.Proposals!);
             if (item == null)
                 return NotFound();
 
             return Ok(item.ToItemDto());
+        }
+
+        [HttpGet("{itemId}/parties")]
+        public async Task<IActionResult> GetPartiesSharingItem([FromRoute] int itemId)
+        {
+            var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
+            if(item == null)
+                return BadRequest($"Item with id:{itemId} does not exist.");
+
+            var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItem(itemId);
+            if (partiesSharingItem == null)
+                return NotFound($"Item with id:{itemId} is not shared with any party.");
+
+            var partiesSharingItemDTOs = partiesSharingItem.Select(p => p.ToPartyWithoutUsersDto());
+
+            return Ok(partiesSharingItemDTOs);
         }
 
         [HttpPost]

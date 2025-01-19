@@ -1,5 +1,6 @@
 ﻿using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
+using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,25 @@ namespace ItemProposalAPI.Controllers
                 return NotFound();
 
             return Ok(user.ToUserDto());
+        }
+
+        [HttpGet("{userId}/party/items")]
+        public async Task<IActionResult> GetAllMyPartyItems([FromRoute] int userId, [FromQuery] QueryObject query)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user == null)
+                return BadRequest($"User with id:{userId} does not exist.");
+
+            if (user.PartyId == null)
+                return NotFound($"User with id:{userId} is not associated with any party");
+
+            var partyItems = await _unitOfWork.ItemPartyRepository.GetPartyItems(user.PartyId, query);
+            if (partyItems == null)
+                return NotFound($"Party does not own shares of any item.");
+
+            var partyItemDTOs = partyItems.Select(p => p.ToItemWithoutProposalsDto());
+
+            return Ok(partyItemDTOs);
         }
 
         [HttpPost]

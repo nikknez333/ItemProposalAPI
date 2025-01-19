@@ -15,6 +15,7 @@ namespace ItemProposalAPI.UnitOfWorkPattern.UnitOfWork
         private IPartyRepository _partyRepository;
         private IItemRepository _itemRepository;
         private IProposalRepository _proposalRepository;
+        private IItemPartyRepository _itemPartyRepository;
 
         public UnitOfWork(ApplicationDbContext dbContext)
         {
@@ -50,6 +51,14 @@ namespace ItemProposalAPI.UnitOfWorkPattern.UnitOfWork
             get
             {
                 return _proposalRepository = _proposalRepository ?? new ProposalRepository(_dbContext);
+            }
+        }
+
+        public IItemPartyRepository ItemPartyRepository
+        { 
+            get
+            {
+                return _itemPartyRepository = _itemPartyRepository ?? new ItemPartyRepository(_dbContext);
             }
         }
 
