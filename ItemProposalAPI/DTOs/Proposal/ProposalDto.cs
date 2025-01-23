@@ -1,4 +1,5 @@
-﻿using ItemProposalAPI.Models;
+﻿using ItemProposalAPI.DTOs.ProposalItemParty;
+using ItemProposalAPI.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace ItemProposalAPI.DTOs.Proposal

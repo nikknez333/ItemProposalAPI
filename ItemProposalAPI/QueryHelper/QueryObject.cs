@@ -13,7 +13,14 @@ namespace ItemProposalAPI.QueryHelper
         public DateTime? To_Creation_Date { get; set; } = null;
         public Status? Share_Status { get; set; } = null;
         //Sorting
-        public ItemWithoutProposalsDto? SortBy { get; set; } = null;
+        public SortOptions SortBy { get; set; }
         public bool IsDescending { get; set; } = false;
+    }
+
+    public enum SortOptions
+    {
+        Name = 0,
+        Creation_Date,
+        Share_Status
     }
 }

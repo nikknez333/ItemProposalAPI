@@ -4,16 +4,20 @@ using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Repository.Interfaces.IEntities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace ItemProposalAPI.Repository.Repositories
 {
-    public class ItemPartyRepository : RepositoryGeneric<ItemParty, int>, IItemPartyRepository
+    public class ItemPartyRepository : IItemPartyRepository
     {
-        public ItemPartyRepository(ApplicationDbContext dbContext) : base(dbContext)
+        private readonly ApplicationDbContext _dbContext;
+
+        public ItemPartyRepository(ApplicationDbContext dbContext)
         {
+            _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Item>> GetPartyItems(int? partyid, QueryObject? query)
+        public async Task<IEnumerable<Item>> GetPartyItemsAsync(int? partyid, QueryObject? query)
         {
             var partyItems = _dbContext.ItemParties
                 .Where(p => p.PartyId == partyid)
@@ -39,18 +43,26 @@ namespace ItemProposalAPI.Repository.Repositories
                     partyItems = partyItems.Where(pi => pi.Share_Status.Equals(query.Share_Status));
                 }
 
-                /*if (!string.IsNullOrWhiteSpace(query.SortBy))
+                if (!string.IsNullOrEmpty(query.SortBy.ToString()))
                 {
-                    if (query.SortBy.ToLower().Trim().Equals("name"))
+                    if (query.SortBy.ToString().Equals("Name"))
                     {
                         partyItems = query.IsDescending ? partyItems.OrderByDescending(pi => pi.Name) : partyItems.OrderBy(pi => pi.Name);
                     }
-                }*/
+                    if(query.SortBy.ToString().Equals("Creation_Date"))
+                    {
+                        partyItems = query.IsDescending ? partyItems.OrderByDescending(pi => pi.Creation_Date) : partyItems.OrderBy(pi => pi.Creation_Date);
+                    }
+                    if(query.SortBy.ToString().Equals("Shared_Status"))
+                    {
+                        partyItems = query.IsDescending ? partyItems.OrderByDescending(pi => pi.Share_Status) : partyItems.OrderBy(pi => pi.Share_Status);
+                    }
+                }
             }
             return await partyItems.ToListAsync();
         }
 
-        public async Task<IEnumerable<Party>> GetPartiesSharingItem(int? itemId)
+        public async Task<IEnumerable<Party>> GetPartiesSharingItemAsync(int? itemId)
         {
             var partiesSharingItem = await _dbContext.ItemParties
                 .Where(i => i.ItemId == itemId)
@@ -58,6 +70,48 @@ namespace ItemProposalAPI.Repository.Repositories
                 .ToListAsync();
 
             return partiesSharingItem;
+        }
+
+        public async Task<IEnumerable<ItemParty>?> GetAllAsync(params Expression<Func<ItemParty, object>>[] includes)
+        {
+            IQueryable<ItemParty> query = _dbContext.ItemParties;
+
+            foreach(var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<ItemParty?> GetByIdAsync(int partyId, int itemId, params Expression<Func<ItemParty, object>>[] includes)
+        {
+            IQueryable<ItemParty> query = _dbContext.ItemParties;
+            
+            foreach(var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.FirstOrDefaultAsync(ip => ip.PartyId == partyId && ip.ItemId == itemId);
+        }
+
+        public async Task<ItemParty> AddItemPartyAsync(ItemParty itemParty)
+        {
+            await _dbContext.ItemParties.AddAsync(itemParty);
+            return itemParty;
+        }
+
+        public async Task<ItemParty?> RemoveItemPartyAsync(int partyId, int itemId)
+        {
+            var existingItemParty = await _dbContext.ItemParties.FirstOrDefaultAsync(ip => ip.PartyId == partyId && ip.ItemId == itemId);
+
+            if (existingItemParty == null)
+                return null;
+
+            _dbContext.Remove(existingItemParty);
+
+            return existingItemParty;
         }
     }
 }

@@ -32,7 +32,7 @@ namespace ItemProposalAPI.Controllers
         {
             var item = await _unitOfWork.ItemRepository.GetByIdAsync(id, i => i.Proposals!);
             if (item == null)
-                return NotFound();
+                return NotFound($"Item with id:{id} does not exist.");
 
             return Ok(item.ToItemDto());
         }
@@ -42,9 +42,9 @@ namespace ItemProposalAPI.Controllers
         {
             var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
             if(item == null)
-                return BadRequest($"Item with id:{itemId} does not exist.");
+                return NotFound($"Item with id:{itemId} does not exist.");
 
-            var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItem(itemId);
+            var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItemAsync(itemId);
             if (partiesSharingItem == null)
                 return NotFound($"Item with id:{itemId} is not shared with any party.");
 
@@ -75,7 +75,7 @@ namespace ItemProposalAPI.Controllers
 
             var existingItem = await _unitOfWork.ItemRepository.GetByIdAsync(id);
             if (existingItem == null)
-                return NotFound();
+                return NotFound($"Item with id:{id} does not exist.");
 
             _unitOfWork.ItemRepository.UpdateAsync(itemDto.ToItemFromUpdateDto(existingItem));
 
@@ -92,7 +92,7 @@ namespace ItemProposalAPI.Controllers
 
             var deletedItem = await _unitOfWork.ItemRepository.DeleteAsync(id);
             if(deletedItem == null)
-              return NotFound();
+              return NotFound($"Item with id:{id} does not exist.");
 
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();

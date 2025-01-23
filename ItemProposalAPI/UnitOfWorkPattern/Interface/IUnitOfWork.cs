@@ -9,6 +9,7 @@ namespace ItemProposalAPI.UnitOfWorkPattern.Interface
         IItemRepository ItemRepository { get; }
         IProposalRepository ProposalRepository { get; }
         IItemPartyRepository ItemPartyRepository { get; }
+        IProposalItemPartyRepository ProposalItemPartyRepository { get; }
 
         Task BeginTransactionAsync();
         Task CommitAsync();

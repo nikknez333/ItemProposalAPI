@@ -19,8 +19,7 @@ namespace ItemProposalAPI.Models
 
     public enum PaymentType
     {
-        Not_Set = 0,
-        Percentage,
+        Percentage = 0,
         Fixed
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ItemProposalAPI.DTOs.Party;
+using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +33,7 @@ namespace ItemProposalAPI.Controllers
         {
             var party = await _unitOfWork.PartyRepository.GetByIdAsync(id, p => p.Users!);
             if (party == null)
-                return NotFound();
+                return NotFound($"Party with id:{id} does not exist.");
 
             return Ok(party.ToPartyDto());
         }
@@ -44,7 +45,7 @@ namespace ItemProposalAPI.Controllers
             if (party == null)
                 return BadRequest($"Party with id:{partyId} does not exist.");
 
-            var partyitems = await _unitOfWork.ItemPartyRepository.GetPartyItems(partyId, null);
+            var partyitems = await _unitOfWork.ItemPartyRepository.GetPartyItemsAsync(partyId, null);
             if (partyitems == null)
                 return NotFound($"Party with id:{partyId} does not own shares of any item.");
 
@@ -76,7 +77,7 @@ namespace ItemProposalAPI.Controllers
 
             var existingParty = await _unitOfWork.PartyRepository.GetByIdAsync(id);
             if (existingParty == null)
-                return NotFound();
+                return NotFound($"Party with id:{id} does not exist.");
 
             _unitOfWork.PartyRepository.UpdateAsync(partyDto.ToPartyFromUpdateDto(existingParty));
 
@@ -93,7 +94,7 @@ namespace ItemProposalAPI.Controllers
 
             var deletedParty = await _unitOfWork.PartyRepository.DeleteAsync(id);
             if (deletedParty == null)
-                return NotFound();
+                return NotFound($"Party with id:{id} does not exist.");
 
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();

@@ -13,11 +13,14 @@ namespace ItemProposalAPI.EnumSchemaFilter
                 schema.Enum.Clear();
                 Enum.GetNames(context.Type)
                     .ToList()
-                    .ForEach(name => schema.Enum.Add(new OpenApiString($"{name}")));
-            }
+                    .ForEach(name => schema.Enum.Add(new OpenApiString(name)));
 
-            schema.Type = "string";
-            schema.Format = null;
+                schema.Type = "string";
+                schema.Format = null;
+            }
+            
+            
+            //schema.Format = null;
         }
     }
 }

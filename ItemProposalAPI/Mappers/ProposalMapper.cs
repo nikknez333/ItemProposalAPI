@@ -19,12 +19,12 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static Proposal ToProposalFromCreateDto(this CreateProposalRequestDto createProposalDto, int userId, int itemId)
+        public static Proposal ToProposalFromCreateDto(this CreateProposalRequestDto createProposalDto)
         {
             return new Proposal
             {
-                UserId = userId,
-                ItemId = itemId,
+                UserId = createProposalDto.UserId,
+                ItemId = createProposalDto.ItemId,
                 Comment = createProposalDto.Comment,
             };
         }
