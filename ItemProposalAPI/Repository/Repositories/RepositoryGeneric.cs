@@ -1,4 +1,5 @@
 ﻿using ItemProposalAPI.DataAccess;
+using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Repository.Interfaces.IRepositoryGeneric;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -14,7 +15,7 @@ namespace ItemProposalAPI.Repository.Repositories
             _dbContext = dbContext;
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(/*QueryObject queryObject,*/ params Expression<Func<TEntity, object>>[] includes)
         {
             IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
@@ -22,6 +23,8 @@ namespace ItemProposalAPI.Repository.Repositories
             {
                 query = query.Include(include);
             }
+            /*query = query.Skip((queryObject.PageNumber - 1) * queryObject.PageSize)
+            .Take(queryObject.PageSize);*/
 
             return await query.ToListAsync();
         }

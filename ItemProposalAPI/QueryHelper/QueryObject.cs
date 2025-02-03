@@ -15,6 +15,8 @@ namespace ItemProposalAPI.QueryHelper
         //Sorting
         public SortOptions SortBy { get; set; }
         public bool IsDescending { get; set; } = false;
+        /*public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 20;*/
     }
 
     public enum SortOptions

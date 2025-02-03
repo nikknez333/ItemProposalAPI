@@ -8,7 +8,6 @@ namespace ItemProposalAPI.Models
         public int UserId { get; set; }
         public int ItemId { get; set; }
         public DateTime Created_At { get; set; } = DateTime.Now;
-        [MaxLength(100)]
         public string? Comment { get; set; } = string.Empty;
         public Proposal_Status Proposal_Status { get; set; }
         //Null for Initial/Regular Proposal

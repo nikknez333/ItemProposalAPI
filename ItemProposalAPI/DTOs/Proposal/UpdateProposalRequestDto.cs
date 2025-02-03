@@ -1,4 +1,5 @@
-﻿using ItemProposalAPI.Models;
+﻿using ItemProposalAPI.DTOs.ProposalItemParty;
+using ItemProposalAPI.Models;
 
 namespace ItemProposalAPI.DTOs.Proposal
 {

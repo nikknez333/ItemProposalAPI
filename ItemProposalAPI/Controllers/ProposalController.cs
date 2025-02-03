@@ -1,9 +1,15 @@
 ﻿using ItemProposalAPI.DTOs.Proposal;
+using ItemProposalAPI.DTOs.ProposalItemParty;
 using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
+using ItemProposalAPI.Models;
+using ItemProposalAPI.QueryHelper;
+using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
+using ItemProposalAPI.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Text;
 
 namespace ItemProposalAPI.Controllers
@@ -12,92 +18,84 @@ namespace ItemProposalAPI.Controllers
     [ApiController]
     public class ProposalController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProposalService _proposalService;
 
-        public ProposalController(IUnitOfWork unitOfWork)
+        public ProposalController(IProposalService proposalService)
         {
-            _unitOfWork = unitOfWork;
+            _proposalService = proposalService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(/*[FromQuery] QueryObject queryObject*/)
         {
-            var proposals = await _unitOfWork.ProposalRepository.GetAllAsync();
+            var result = await _proposalService.GetAllAsync();
+            if(!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            var proposalDTOs = proposals.Select(p => p.ToProposalDto());
-
-            return Ok(proposalDTOs);
+            return Ok(result.Data);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var proposal = await _unitOfWork.ProposalRepository.GetByIdAsync(id);
-            if (proposal == null)
-                return NotFound($"Proposal with id:{id} does not exist.");
+            var result = await _proposalService.GetByIdAsync(id);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            return Ok(proposal.ToProposalDto());
+            return Ok(result.Data);
         }
 
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] CreateProposalRequestDto proposalDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
+            var result = await _proposalService.AddAsync(proposalDto);
+            if (!result.IsSuccess)
+                return BadRequest(new
+                {
+                    Errors = result.Errors
+                });
 
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(proposalDto.UserId);
-            if (user == null)
-                return BadRequest($"User with Id:{proposalDto.UserId} does not exist");
-
-            var item = await _unitOfWork.ItemRepository.GetByIdAsync(proposalDto.ItemId);
-            if (item == null)
-                return BadRequest($"Item with Id:{proposalDto.ItemId} does not exist");
-
-            if (user.PartyId == null)
-                return BadRequest($"Users that are not part of any party can't make proposals.");
-            
-            //check is item status is shared
-            if (item.Share_Status == Models.Status.Not_Shared)
-                return BadRequest($"Proposal for item with ID: {item.Id} can't be made, because item is not shared");
-
-            var proposalModel = proposalDto.ToProposalFromCreateDto();
-
-            await _unitOfWork.ProposalRepository.AddAsync(proposalModel);
-
-            await _unitOfWork.SaveChangesAsync();
-
-            await _unitOfWork.CommitAsync();
-
-            return CreatedAtAction(nameof(GetById), new {id = proposalModel.Id}, proposalModel.ToProposalDto());
+            return CreatedAtAction(nameof(GetById), new {id = result.Data.Id}, result.Data.ToProposalDto());
         }
 
-        [HttpPut("{id}")]
+        [HttpPost("{proposalId:int}/counter")]
+        public async Task<IActionResult> AddCounterProposal([FromRoute] int proposalId, [FromBody] CreateCounterProposalRequestDto counterProposalDto)
+        {
+            var result = await _proposalService.AddCounterProposalAsync(proposalId, counterProposalDto);
+            if (!result.IsSuccess)
+                return result.ErrorType switch
+                {
+                    ErrorType.NotFound => NotFound(result.Errors),
+                    ErrorType.BadRequest => BadRequest(result.Errors),
+                    _ => StatusCode(500, new { Errors = result.Errors })
+                };
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result.Data.ToProposalDto());
+        }
+
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateProposalRequestDto proposalDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
+            var result = await _proposalService.UpdateAsync(id, proposalDto);
+            if(!result.IsSuccess)
+            {
+                return result.ErrorType switch
+                {
+                    ErrorType.NotFound => NotFound(result.Errors),
+                    ErrorType.BadRequest => BadRequest(result.Errors),
+                    _ => StatusCode(500, new { Errors = result.Errors })
+                };
+            }
 
-            var existingProposal = await _unitOfWork.ProposalRepository.GetByIdAsync(id);
-            if (existingProposal == null)
-                return NotFound($"Proposal with id:{id} does not exist.");
-
-            _unitOfWork.ProposalRepository.UpdateAsync(proposalDto.ToProposalFromUpdateDto(existingProposal));
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
-
-            return Ok(existingProposal.ToProposalDto());
+            return Ok(result.Data);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
-
-            var deletedProposal = await _unitOfWork.ProposalRepository.DeleteAsync(id);
-            if(deletedProposal == null)
-                return NotFound($"Proposal with id:{id} does not exist.");
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
+            var result = await _proposalService.DeleteAsync(id);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
             return NoContent();
         }

@@ -1,6 +1,9 @@
 ﻿using ItemProposalAPI.DTOs.Item;
 using ItemProposalAPI.Mappers;
+using ItemProposalAPI.QueryHelper;
+using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
+using ItemProposalAPI.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,92 +13,96 @@ namespace ItemProposalAPI.Controllers
     [ApiController]
     public class ItemController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IItemService _itemService;
 
-        public ItemController(IUnitOfWork unitOfWork)
+        public ItemController(IItemService itemService)
         {
-            _unitOfWork = unitOfWork;
+            _itemService = itemService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(/*[FromQuery] QueryObject queryObject*/)
         {
-            var items = await _unitOfWork.ItemRepository.GetAllAsync(i => i.Proposals!);
+            var result = await _itemService.GetAllAsync();
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            var itemDTOs = items.Select(i => i.ToItemDto());
-
-            return Ok(itemDTOs);
+            return Ok(result.Data);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var item = await _unitOfWork.ItemRepository.GetByIdAsync(id, i => i.Proposals!);
-            if (item == null)
-                return NotFound($"Item with id:{id} does not exist.");
+            var result = await _itemService.GetByIdAsync(id);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            return Ok(item.ToItemDto());
+            return Ok(result.Data);
         }
 
-        [HttpGet("{itemId}/parties")]
+        [HttpGet("{itemId:int}/parties")]
         public async Task<IActionResult> GetPartiesSharingItem([FromRoute] int itemId)
         {
-            var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
-            if(item == null)
-                return NotFound($"Item with id:{itemId} does not exist.");
+            var result = await _itemService.GetPartiesSharingItemAsync(itemId);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItemAsync(itemId);
-            if (partiesSharingItem == null)
-                return NotFound($"Item with id:{itemId} is not shared with any party.");
+            return Ok(result.Data);
+        }
 
-            var partiesSharingItemDTOs = partiesSharingItem.Select(p => p.ToPartyWithoutUsersDto());
+        [HttpGet("{id:int}/proposals")]
+        public async Task<IActionResult> GetNegotiationDetails([FromRoute] int id)
+        {
+            var result = await _itemService.GetNegotiationDetails(id);
+            if (!result.IsSuccess)
+            {
+                return result.ErrorType switch
+                {
+                    ErrorType.NotFound => NotFound(result.Errors),
+                    ErrorType.BadRequest => BadRequest(result.Errors),
+                    _ => StatusCode(500, new { Errors = result.Errors })
+                };
+            }
 
-            return Ok(partiesSharingItemDTOs);
+            return Ok(result.Data);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] CreateItemRequestDto itemDto)
+        public async Task<IActionResult> Add([FromBody] CreateItemRequestDto createItemDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
+            var result = await _itemService.AddAsync(createItemDto);
+            if (!result.IsSuccess)
+                return BadRequest(new
+                {
+                    Errors = result.Errors
+                });
 
-            var itemModel = itemDto.ToItemFromCreateDto();
-
-            await _unitOfWork.ItemRepository.AddAsync(itemModel);
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
-
-            return CreatedAtAction(nameof(GetById), new {id = itemModel.Id}, itemModel.ToItemDto());
+            return CreatedAtAction(nameof(GetById), new {id = result.Data.Id}, result.Data.ToItemWithoutProposalsDto());
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateItemRequestDto itemDto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateItemRequestDto updateItemDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
+            var result = await _itemService.UpdateAsync(id, updateItemDto);
+            if(!result.IsSuccess)
+            {
+                return result.ErrorType switch
+                { 
+                    ErrorType.NotFound => NotFound(result.Errors),
+                    ErrorType.BadRequest => BadRequest(result.Errors),
+                    _ => StatusCode(500, new {Errors = result.Errors})
+                };
+            }
 
-            var existingItem = await _unitOfWork.ItemRepository.GetByIdAsync(id);
-            if (existingItem == null)
-                return NotFound($"Item with id:{id} does not exist.");
-
-            _unitOfWork.ItemRepository.UpdateAsync(itemDto.ToItemFromUpdateDto(existingItem));
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
-
-            return Ok(existingItem.ToItemDto());
+            return Ok(result.Data);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
-
-            var deletedItem = await _unitOfWork.ItemRepository.DeleteAsync(id);
-            if(deletedItem == null)
-              return NotFound($"Item with id:{id} does not exist.");
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
+            var result = await _itemService.DeleteAsync(id);
+            if(!result.IsSuccess)
+                return NotFound(result.Errors);
 
             return NoContent();
         }

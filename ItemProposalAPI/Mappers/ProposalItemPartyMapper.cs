@@ -6,13 +6,11 @@ namespace ItemProposalAPI.Mappers
 {
     public static class ProposalItemPartyMapper
     {
-        public static ProposalItemPartyDto ToProposalItemPartyDto(this ProposalItemParty proposalItemPartyModel)
+        public static PaymentRatioDto ToPaymentRatioDto(this ProposalItemParty proposalItemPartyModel)
         {
-            return new ProposalItemPartyDto
+            return new PaymentRatioDto
             {
-                ProposalId = proposalItemPartyModel.ProposalId,
                 PartyId = proposalItemPartyModel.PartyId,
-                ItemId = proposalItemPartyModel.ItemId,
                 PaymentType = proposalItemPartyModel.PaymentType,
                 PaymentAmount = proposalItemPartyModel.PaymentAmount,
             };

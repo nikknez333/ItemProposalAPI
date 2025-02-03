@@ -6,7 +6,6 @@ namespace ItemProposalAPI.Models
     {
         public int Id { get; set; }
         public int? PartyId { get; set; }
-        [MaxLength(30)]
         public string Username { get; set; } = string.Empty; 
         
         //navigation property

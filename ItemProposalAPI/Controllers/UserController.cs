@@ -1,9 +1,12 @@
 ﻿using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.QueryHelper;
+using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
+using ItemProposalAPI.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ItemProposalAPI.Controllers
 {
@@ -11,113 +14,81 @@ namespace ItemProposalAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserService _userService;
 
-        public UserController(IUnitOfWork unitOfWork)
+        public UserController(IUnitOfWork unitOfWork, IUserService userService)
         {
-            _unitOfWork = unitOfWork;
+            _userService = userService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(/*[FromQuery] QueryObject queryObject*/)
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync(u => u.Proposals!);
+            var result = await _userService.GetAllAsync(/*queryObject*/);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            var userDTOs = users.Select(u => u.ToUserDto());
-
-            return Ok(userDTOs);
+            return Ok(result.Data);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id, u => u.Proposals!);
+            var result = await _userService.GetByIdAsync(id);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            if (user == null)
-                return NotFound($"User with id:{id} does not exist.");
-
-            return Ok(user.ToUserDto());
+            return Ok(result.Data);         
         }
 
-        [HttpGet("{userId}/party/items")]
+        [HttpGet("{userId:int}/party/items")]
         public async Task<IActionResult> GetAllMyPartyItems([FromRoute] int userId, [FromQuery] QueryObject query)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            if (user == null)
-                return NotFound($"User with id:{userId} does not exist.");
+            var result = await _userService.GetMyPartyItemsAsync(userId, query);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            if (user.PartyId == null)
-                return NotFound($"User with id:{userId} is not associated with any party");
-
-            var partyItems = await _unitOfWork.ItemPartyRepository.GetPartyItemsAsync(user.PartyId, query);
-            if (partyItems == null)
-                return NotFound($"Party does not own shares of any item.");
-
-            var partyItemDTOs = partyItems.Select(p => p.ToItemWithoutProposalsDto());
-
-            return Ok(partyItemDTOs);
+            return Ok(result.Data);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] CreateUserRequestDto userDto)
+        public async Task<IActionResult> Add([FromBody] CreateUserRequestDto createUserDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
-
-            var userModel = userDto.ToUserFromCreateDto();
-            //if HTTP POST want to create user who is part of some company
-            if (userModel.PartyId.HasValue)
+            var result = await _userService.AddAsync(createUserDto);
+            if(!result.IsSuccess)
             {
-                //check does that party exist
-                var party = await _unitOfWork.PartyRepository.GetByIdAsync((int)userModel.PartyId);
-                if (party == null)
-                    return BadRequest($"Party with id:{userModel.PartyId} does not exist.");
+                return BadRequest(new
+                {
+                    Errors = result.Errors
+                });
             }
 
-            await _unitOfWork.UserRepository.AddAsync(userModel);
-
-            await _unitOfWork.SaveChangesAsync();
-
-            await _unitOfWork.CommitAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id =  userModel.Id }, userModel.ToUserDto());
+            return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result.Data.ToUserWithoutProposalsDto());
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateUserRequestDto userDto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateUserRequestDto updateUserDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
-
-            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (existingUser == null)
-                return NotFound($"User with id:{id} does not exist.");
-
-            if (userDto.PartyId.HasValue)
+            var result = await _userService.UpdateAsync(id, updateUserDto);
+            if(!result.IsSuccess)
             {
-                //check does that party exist
-                var party = await _unitOfWork.PartyRepository.GetByIdAsync((int)userDto.PartyId);
-                if (party == null)
-                    return BadRequest($"Party with id:{userDto.PartyId} does not exist.");
+                return result.ErrorType switch
+                {
+                    ErrorType.NotFound => NotFound(new { Errors = result.Errors }),
+                    ErrorType.BadRequest => BadRequest(new { Errors = result.Errors }),
+                    _ => StatusCode(500, new { Errors = result.Errors }),
+                };
             }
 
-            _unitOfWork.UserRepository.UpdateAsync(userDto.ToUserFromUpdateDto(existingUser));
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
-
-            return Ok(existingUser.ToUserDto());
+            return Ok(result.Data);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
-
-            var deletedUser = await _unitOfWork.UserRepository.DeleteAsync(id);
-            if(deletedUser == null)
-                return NotFound($"User with id:{id} does not exist.");
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
+            var result = await _userService.DeleteAsync(id);
+            if(!result.IsSuccess)
+                return NotFound(result.Errors);
 
             return NoContent();
         }

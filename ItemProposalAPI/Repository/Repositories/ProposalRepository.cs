@@ -13,7 +13,7 @@ namespace ItemProposalAPI.Repository.Repositories
         {
         }
 
-        public async Task<IEnumerable<Proposal>> GetNegotiationDetails(int itemId, params Expression<Func<Proposal, object>>[] includes)
+        public async Task<IEnumerable<Proposal>?> GetNegotiationDetails(int itemId, params Expression<Func<Proposal, object>>[] includes)
         { 
             IQueryable<Proposal> query = _dbContext.Proposal;
 

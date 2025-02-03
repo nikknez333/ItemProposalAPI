@@ -20,6 +20,18 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
+        public static ItemNegotiationDto ToItemNegotiationDto(this Item itemModel, IEnumerable<Proposal> proposals)
+        {
+            return new ItemNegotiationDto
+            {
+                Id = itemModel.Id,
+                Name = itemModel.Name,
+                Creation_Date = itemModel.Creation_Date,
+                Share_Status = itemModel.Share_Status,
+                Proposals = proposals.Select(p => p.ToProposalDto()).ToList()
+            };
+        }
+
         public static ItemWithoutProposalsDto ToItemWithoutProposalsDto(this Item itemModel)
         {
             return new ItemWithoutProposalsDto

@@ -6,6 +6,6 @@ namespace ItemProposalAPI.Repository.Interfaces.IEntities
 {
     public interface IProposalRepository : IRepositoryGeneric<Proposal, int>
     {
-        Task<IEnumerable<Proposal>> GetNegotiationDetails(int itemId, params Expression<Func<Proposal, object>>[] includes);
+        Task<IEnumerable<Proposal>?> GetNegotiationDetails(int itemId, params Expression<Func<Proposal, object>>[] includes);
     }
 }

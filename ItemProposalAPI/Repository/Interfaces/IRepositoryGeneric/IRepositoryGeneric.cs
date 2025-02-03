@@ -1,11 +1,12 @@
-﻿using System.Linq.Expressions;
+﻿using ItemProposalAPI.QueryHelper;
+using System.Linq.Expressions;
 
 namespace ItemProposalAPI.Repository.Interfaces.IRepositoryGeneric
 {
     public interface IRepositoryGeneric<TEntity, TPKey> where TEntity : class
     {
         //Generic GET
-        Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes);
+        Task<IEnumerable<TEntity>> GetAllAsync(/*QueryObject queryObject,*/ params Expression<Func<TEntity, object>>[] includes);
         Task<TEntity?> GetByIdAsync(TPKey id, params Expression<Func<TEntity, object>>[] includes);
         //Generic POST
         Task<TEntity> AddAsync(TEntity entity);

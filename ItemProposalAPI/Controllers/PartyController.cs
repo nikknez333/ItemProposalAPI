@@ -1,7 +1,10 @@
 ﻿using ItemProposalAPI.DTOs.Party;
 using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
+using ItemProposalAPI.QueryHelper;
+using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
+using ItemProposalAPI.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,93 +14,79 @@ namespace ItemProposalAPI.Controllers
     [ApiController]
     public class PartyController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPartyService _partyService;
 
-        public PartyController(IUnitOfWork unitOfWork)
+        public PartyController(IPartyService partyService)
         {
-            _unitOfWork = unitOfWork;
+            _partyService = partyService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(/*[FromQuery] QueryObject queryObject*/)
         {
-            var parties = await _unitOfWork.PartyRepository.GetAllAsync(p => p.Users!, p => p.ItemParties!);
+            var result = await _partyService.GetAllAsync();
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            var partyDTOs = parties.Select(p => p.ToPartyDto());
-
-            return Ok(partyDTOs);
+            return Ok(result.Data);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var party = await _unitOfWork.PartyRepository.GetByIdAsync(id, p => p.Users!);
-            if (party == null)
-                return NotFound($"Party with id:{id} does not exist.");
+            var result = await _partyService.GetByIdAsync(id);
+            if (!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            return Ok(party.ToPartyDto());
+            return Ok(result.Data);
         }
 
-        [HttpGet("{partyId}/items")]
+        [HttpGet("{partyId:int}/items")]
         public async Task<IActionResult> GetPartyItems([FromRoute] int partyId)
         {
-            var party = await _unitOfWork.PartyRepository.GetByIdAsync(partyId);
-            if (party == null)
-                return BadRequest($"Party with id:{partyId} does not exist.");
+            var result = await _partyService.GetPartyItemsAsync(partyId);
+            if(!result.IsSuccess)
+                return NotFound(result.Errors);
 
-            var partyitems = await _unitOfWork.ItemPartyRepository.GetPartyItemsAsync(partyId, null);
-            if (partyitems == null)
-                return NotFound($"Party with id:{partyId} does not own shares of any item.");
-
-            var partyItemDTOs = partyitems.Select(i => i.ToItemWithoutProposalsDto());
-
-            return Ok(partyItemDTOs);
+            return Ok(result.Data);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] CreatePartyRequestDto partyDto)
+        public async Task<IActionResult> Add([FromBody] CreatePartyRequestDto createPartyDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
+            var result = await _partyService.AddAsync(createPartyDto);
+            if (!result.IsSuccess)
+                return BadRequest(new
+                {
+                    Errors = result.Errors
+                });
 
-            var partyModel = partyDto.ToPartyFromCreateDto();
-
-            await _unitOfWork.PartyRepository.AddAsync(partyModel);
-
-            await _unitOfWork.SaveChangesAsync();
-
-            await _unitOfWork.CommitAsync();
-
-            return CreatedAtAction(nameof(GetById), new {id =  partyModel.Id}, partyModel.ToPartyDto());
+            return CreatedAtAction(nameof(GetById), new {id =  result.Data.Id}, result.Data.ToPartyWithoutUsersDto());
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdatePartyRequestDto partyDto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdatePartyRequestDto updatePartyDto)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
+            var result = await _partyService.UpdateAsync(id, updatePartyDto);
+            if(!result.IsSuccess)
+            {
+                return result.ErrorType switch
+                {
+                    ErrorType.NotFound => NotFound(result.Errors),
+                    ErrorType.BadRequest => BadRequest(result.Errors),
+                    _ => StatusCode(500, new {Errors = result.Errors})
+                };
+            }
 
-            var existingParty = await _unitOfWork.PartyRepository.GetByIdAsync(id);
-            if (existingParty == null)
-                return NotFound($"Party with id:{id} does not exist.");
-
-            _unitOfWork.PartyRepository.UpdateAsync(partyDto.ToPartyFromUpdateDto(existingParty));
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
-
-            return Ok(existingParty.ToPartyDto());
+            return Ok(result.Data);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            using var transaction = _unitOfWork.BeginTransactionAsync();
-
-            var deletedParty = await _unitOfWork.PartyRepository.DeleteAsync(id);
-            if (deletedParty == null)
-                return NotFound($"Party with id:{id} does not exist.");
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitAsync();
+            var result = await _partyService.DeleteAsync(id);
+            if(!result.IsSuccess)
+                return NotFound(result.Errors); 
 
             return NoContent();
         }

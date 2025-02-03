@@ -9,7 +9,6 @@ namespace ItemProposalAPI.Models
         public int ItemId { get; set; }
         public int PartyId { get; set; }
         public PaymentType PaymentType { get; set; }
-        [Column(TypeName = "decimal(18,2)")]
         public decimal PaymentAmount { get; set; }
 
         //navigation properties
