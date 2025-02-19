@@ -1,15 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace ItemProposalAPI.Models
 {
-    public class User
+    public class User : IdentityUser
     {
-        public int Id { get; set; }
+        //public int Id { get; set; }
         public int? PartyId { get; set; }
-        public string Username { get; set; } = string.Empty; 
+        //public string Username { get; set; } = string.Empty; 
         
         //navigation property
         public Party? Party { get; set; } 
+        public ICollection<ProposalItemParty>? ProposalItemParties { get; set; } = new List<ProposalItemParty>(); 
         public ICollection<Proposal>? Proposals { get; set; } = new List<Proposal>();
     }
 }

@@ -4,6 +4,7 @@ using ItemProposalAPI.DTOs.ItemParty;
 using ItemProposalAPI.DTOs.Party;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.Models;
+using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using ItemProposalAPI.Validation;
@@ -23,9 +24,9 @@ namespace ItemProposalAPI.Services.Service
             _addValidator = addValidator;
             _updateValidator = updateValidator;
         }
-        public async Task<Result<IEnumerable<PartyWithoutUsersDto>>> GetAllAsync()
+        public async Task<Result<IEnumerable<PartyWithoutUsersDto>>> GetAllAsync(PaginationObject pagination)
         {
-            var parties = await _unitOfWork.PartyRepository.GetAllAsync();
+            var parties = await _unitOfWork.PartyRepository.GetAllAsync(pagination.PageNumber, pagination.PageSize);
             if (!parties.Any())
                 return Result<IEnumerable<PartyWithoutUsersDto>>.Failure(ErrorType.NotFound, "No parties found");
 

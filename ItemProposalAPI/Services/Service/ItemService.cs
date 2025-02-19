@@ -1,12 +1,16 @@
 ﻿using FluentValidation;
+using ItemProposalAPI.ClaimsExtension;
 using ItemProposalAPI.DTOs.Item;
 using ItemProposalAPI.DTOs.Party;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.Models;
+using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using ItemProposalAPI.Validation;
+using Microsoft.AspNetCore.Identity;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
 
 namespace ItemProposalAPI.Services.Service
 {
@@ -15,17 +19,19 @@ namespace ItemProposalAPI.Services.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IValidator<CreateItemRequestDto> _addValidator;
         private readonly IValidator<UpdateItemRequestDto> _updateValidator;
+        private readonly UserManager<User> _userManager;
 
-        public ItemService(IUnitOfWork unitOfWork, IValidator<CreateItemRequestDto> addValidator, IValidator<UpdateItemRequestDto> updateValidator)
+        public ItemService(IUnitOfWork unitOfWork, IValidator<CreateItemRequestDto> addValidator, IValidator<UpdateItemRequestDto> updateValidator, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
             _addValidator = addValidator;
             _updateValidator = updateValidator;
+            _userManager = userManager;
         }
 
-        public async Task<Result<IEnumerable<ItemWithoutProposalsDto>>> GetAllAsync()
+        public async Task<Result<IEnumerable<ItemWithoutProposalsDto>>> GetAllAsync(PaginationObject pagination)
         {
-            var items = await _unitOfWork.ItemRepository.GetAllAsync();
+            var items = await _unitOfWork.ItemRepository.GetAllAsync(pagination.PageNumber, pagination.PageSize);
             if (!items.Any())
                 return Result<IEnumerable<ItemWithoutProposalsDto>>.Failure(ErrorType.NotFound, $"No items found.");
 
@@ -43,13 +49,13 @@ namespace ItemProposalAPI.Services.Service
             return Result<ItemWithoutProposalsDto>.Success(item.ToItemWithoutProposalsDto());
         }
 
-        public async Task<Result<IEnumerable<PartyWithoutUsersDto>>> GetPartiesSharingItemAsync(int itemId)
+        public async Task<Result<IEnumerable<PartyWithoutUsersDto>>> GetPartiesSharingItemAsync(int itemId, PaginationObject pagination)
         {
             var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
             if (item == null)
                 return Result<IEnumerable<PartyWithoutUsersDto>>.Failure(ErrorType.NotFound, $"Item with id:{itemId} does not exist.");
 
-            var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItemAsync(itemId);
+            var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItemAsync(itemId, pagination.PageNumber, pagination.PageSize);
             if (partiesSharingItem == null)
                 return Result<IEnumerable<PartyWithoutUsersDto>>.Failure(ErrorType.NotFound, $"Item with id:{itemId} is not shared with any party.");
 
@@ -58,7 +64,7 @@ namespace ItemProposalAPI.Services.Service
             return Result<IEnumerable<PartyWithoutUsersDto>>.Success(partiesSharingItemDTOs);
         }
 
-        public async Task<Result<ItemNegotiationDto>> GetNegotiationDetails(int itemId)
+        public async Task<Result<ItemNegotiationDto>> GetNegotiationDetails(int itemId, PaginationObject pagination, ClaimsPrincipal User)
         {
             var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
             if(item == null)
@@ -67,11 +73,13 @@ namespace ItemProposalAPI.Services.Service
             if (item.Share_Status != Status.Shared)
                 return Result<ItemNegotiationDto>.Failure(ErrorType.BadRequest, $"Proposals can be retrieved only for shared items. Item ID:{itemId} is not shared.");
 
-            var itemProposal = await _unitOfWork.ProposalRepository.GetNegotiationDetails(itemId, p => p.ProposalItemParties);
-            if (itemProposal == null || !itemProposal.Any())
+            var itemProposals = await _unitOfWork.ProposalRepository.GetNegotiationDetails(itemId, pagination.PageNumber, pagination.PageSize);
+            if (itemProposals == null || !itemProposals.Any())
                 return Result<ItemNegotiationDto>.Failure(ErrorType.NotFound, $"Item ID: {itemId} does not have any submitted proposal.");
 
-            var itemNegotiationDTOs = item.ToItemNegotiationDto(itemProposal);
+            var user = await _userManager.FindByNameAsync(User.GetUsername());
+
+            var itemNegotiationDTOs = item.ToItemNegotiationDto(itemProposals, user);
 
             return Result<ItemNegotiationDto>.Success(itemNegotiationDTOs);
         }

@@ -17,6 +17,11 @@ namespace ItemProposalAPI.Repository.Repositories
             _dbContext = dbContext;
         }
 
+        public IQueryable<ItemParty> QueryItemParty()
+        {
+            return _dbContext.ItemParties.AsQueryable();
+        }
+
         public async Task<IEnumerable<Item>> GetPartyItemsAsync(int? partyid, QueryObject? query)
         {
             var partyItems = _dbContext.ItemParties
@@ -62,17 +67,19 @@ namespace ItemProposalAPI.Repository.Repositories
             return await partyItems.ToListAsync();
         }
 
-        public async Task<IEnumerable<Party>> GetPartiesSharingItemAsync(int? itemId)
+        public async Task<IEnumerable<Party>> GetPartiesSharingItemAsync(int? itemId, int pageNumber, int pageSize)
         {
             var partiesSharingItem = await _dbContext.ItemParties
                 .Where(i => i.ItemId == itemId)
                 .Select(p => p.Party)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return partiesSharingItem;
         }
 
-        public async Task<IEnumerable<ItemParty>?> GetAllAsync(params Expression<Func<ItemParty, object>>[] includes)
+        public async Task<IEnumerable<ItemParty>?> GetAllAsync(int pageNumber, int pageSize, params Expression<Func<ItemParty, object>>[] includes)
         {
             IQueryable<ItemParty> query = _dbContext.ItemParties;
 
@@ -80,6 +87,8 @@ namespace ItemProposalAPI.Repository.Repositories
             {
                 query = query.Include(include);
             }
+
+            query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
 
             return await query.ToListAsync();
         }

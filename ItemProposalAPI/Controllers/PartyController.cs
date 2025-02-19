@@ -5,6 +5,7 @@ using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using ItemProposalAPI.Validation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,7 @@ namespace ItemProposalAPI.Controllers
 {
     [Route("api/parties")]
     [ApiController]
+    [Authorize(Roles = "UserPartyOwner")]
     public class PartyController : ControllerBase
     {
         private readonly IPartyService _partyService;
@@ -22,9 +24,9 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(/*[FromQuery] QueryObject queryObject*/)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationObject pagination)
         {
-            var result = await _partyService.GetAllAsync();
+            var result = await _partyService.GetAllAsync(pagination);
             if (!result.IsSuccess)
                 return NotFound(result.Errors);
 
@@ -32,6 +34,7 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "UserPartyEmployee, UserPartyOwner")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var result = await _partyService.GetByIdAsync(id);
@@ -42,6 +45,7 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet("{partyId:int}/items")]
+        [Authorize(Roles = "UserPartyEmployee, UserPartyOwner")]
         public async Task<IActionResult> GetPartyItems([FromRoute] int partyId)
         {
             var result = await _partyService.GetPartyItemsAsync(partyId);
@@ -61,7 +65,7 @@ namespace ItemProposalAPI.Controllers
                     Errors = result.Errors
                 });
 
-            return CreatedAtAction(nameof(GetById), new {id =  result.Data.Id}, result.Data.ToPartyWithoutUsersDto());
+            return CreatedAtAction(nameof(GetById), new {id = result.Data.Id}, result.Data.ToPartyWithoutUsersDto());
         }
 
         [HttpPut("{id:int}")]
@@ -90,6 +94,5 @@ namespace ItemProposalAPI.Controllers
 
             return NoContent();
         }
-
     }
 }

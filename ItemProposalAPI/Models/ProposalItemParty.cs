@@ -10,15 +10,18 @@ namespace ItemProposalAPI.Models
         public int PartyId { get; set; }
         public PaymentType PaymentType { get; set; }
         public decimal PaymentAmount { get; set; }
+        public Proposal_Status Response { get; set; }
+        public string? UserId { get; set; }
 
         //navigation properties
+        public User? User { get; set; }
         public Proposal Proposal { get; set; }
         public ItemParty ItemParty { get; set; }
     }
 
     public enum PaymentType
     {
-        Percentage = 0,
+        Percentage = 1,
         Fixed
-    }
+    } 
 }

@@ -4,6 +4,7 @@ using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using ItemProposalAPI.Validation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ namespace ItemProposalAPI.Controllers
 {
     [Route("api/items")]
     [ApiController]
+    [Authorize]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
@@ -21,9 +23,9 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(/*[FromQuery] QueryObject queryObject*/)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationObject pagination)
         {
-            var result = await _itemService.GetAllAsync();
+            var result = await _itemService.GetAllAsync(pagination);
             if (!result.IsSuccess)
                 return NotFound(result.Errors);
 
@@ -41,9 +43,9 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet("{itemId:int}/parties")]
-        public async Task<IActionResult> GetPartiesSharingItem([FromRoute] int itemId)
+        public async Task<IActionResult> GetPartiesSharingItem([FromRoute] int itemId, [FromQuery] PaginationObject pagination)
         {
-            var result = await _itemService.GetPartiesSharingItemAsync(itemId);
+            var result = await _itemService.GetPartiesSharingItemAsync(itemId, pagination);
             if (!result.IsSuccess)
                 return NotFound(result.Errors);
 
@@ -51,9 +53,10 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet("{id:int}/proposals")]
-        public async Task<IActionResult> GetNegotiationDetails([FromRoute] int id)
+        [Authorize(Roles = "UserPartyOwner,UserPartyEmployee")]
+        public async Task<IActionResult> GetNegotiationDetails([FromRoute] int id, [FromQuery] PaginationObject pagination)
         {
-            var result = await _itemService.GetNegotiationDetails(id);
+            var result = await _itemService.GetNegotiationDetails(id, pagination, User);
             if (!result.IsSuccess)
             {
                 return result.ErrorType switch

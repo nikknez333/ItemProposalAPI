@@ -6,5 +6,6 @@ namespace ItemProposalAPI.DTOs.Proposal
     public class UpdateProposalRequestDto
     {
         public string? Comment { get; set; } = string.Empty;
+        public List<PaymentRatioDto> PaymentRatios { get; set; } = new List<PaymentRatioDto>();
     }
 }

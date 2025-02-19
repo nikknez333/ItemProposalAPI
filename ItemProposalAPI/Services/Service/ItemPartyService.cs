@@ -2,10 +2,10 @@
 using ItemProposalAPI.DTOs.ItemParty;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.Models;
+using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Services.Interfaces;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using ItemProposalAPI.Validation;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ItemProposalAPI.Services.Service
 {
@@ -19,9 +19,9 @@ namespace ItemProposalAPI.Services.Service
             _unitOfWork = unitOfWork;
             _addValidator = addValidator;
         }
-        public async Task<Result<IEnumerable<ItemPartyDto>>> GetAllAsync()
+        public async Task<Result<IEnumerable<ItemPartyDto>>> GetAllAsync(PaginationObject pagination)
         {
-            var itemParties = await _unitOfWork.ItemPartyRepository.GetAllAsync(ip => ip.Party, ip => ip.Item);
+            var itemParties = await _unitOfWork.ItemPartyRepository.GetAllAsync(pagination.PageNumber, pagination.PageSize, ip => ip.Party, ip => ip.Item);
             if (itemParties == null || !itemParties.Any())
                 return Result<IEnumerable<ItemPartyDto>>.Failure(ErrorType.NotFound, $"No Items is being owned by any Party.");
 
@@ -67,9 +67,9 @@ namespace ItemProposalAPI.Services.Service
                 var itemModel = await _unitOfWork.ItemRepository.GetByIdAsync(createItemPartyDto.ItemId);
                 itemModel.Share_Status = Status.Shared;
                 _unitOfWork.ItemRepository.UpdateAsync(itemModel);
+                await _unitOfWork.SaveChangesAsync();
             }
-
-            await _unitOfWork.SaveChangesAsync();
+ 
             await _unitOfWork.CommitAsync();
 
             return Result<ItemParty>.Success(itemPartyModel);
@@ -91,9 +91,10 @@ namespace ItemProposalAPI.Services.Service
                 var itemModel = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
                 itemModel.Share_Status = Status.Not_Shared;
                 _unitOfWork.ItemRepository.UpdateAsync(itemModel);
+
+                await _unitOfWork.SaveChangesAsync();
             }
 
-            await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
 
             return Result<ItemParty>.Success(deletedItemParty);

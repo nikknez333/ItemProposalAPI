@@ -27,16 +27,12 @@ namespace ItemProposalAPI.Validation.ItemParty
 
         private async Task<bool> PartyExists(int partyId, CancellationToken token)
         {
-            var party = await _unitOfWork.PartyRepository.GetByIdAsync(partyId);
-
-            return party != null;
+            return await _unitOfWork.PartyRepository.ExistsAsync(partyId);
         }
 
         private async Task<bool> ItemExists(int itemId, CancellationToken token)
         {
-            var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
-
-            return item != null;
+            return await _unitOfWork.ItemRepository.ExistsAsync(itemId);
         }
     }
 }

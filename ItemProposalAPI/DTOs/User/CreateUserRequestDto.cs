@@ -1,8 +1,0 @@
-﻿namespace ItemProposalAPI.DTOs.User
-{
-    public class CreateUserRequestDto
-    {
-        public int? PartyId { get; set; }
-        public string Username { get; set; } = string.Empty;
-    }
-}

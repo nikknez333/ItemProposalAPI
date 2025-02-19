@@ -12,7 +12,7 @@ namespace ItemProposalAPI.Mappers
             {
                 Id = userModel.Id,
                 PartyId = userModel.PartyId,
-                Username = userModel.Username,
+                Username = userModel.UserName,
                 Proposals = userModel.Proposals!.Select(p => p.ToProposalDto()).ToList()
             };
         }
@@ -22,26 +22,8 @@ namespace ItemProposalAPI.Mappers
             return new UserWithoutProposalsDto
             {
                 Id = userModel.Id,
-                PartyId = userModel.PartyId,
-                Username = userModel.Username,
+                Username = userModel.UserName,
             };
-        }
-
-        public static User ToUserFromCreateDto(this CreateUserRequestDto createUserDto)
-        {
-            return new User
-            {
-                PartyId = createUserDto.PartyId,
-                Username = createUserDto.Username,
-            };
-        }
-
-        public static User ToUserFromUpdateDto(this UpdateUserRequestDto updateUserDto, User user)
-        {
-           user.PartyId = updateUserDto.PartyId;
-           user.Username = updateUserDto.Username;
-
-           return user;
         }
     }
 }

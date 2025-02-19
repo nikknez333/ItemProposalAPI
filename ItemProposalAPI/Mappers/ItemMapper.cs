@@ -20,7 +20,7 @@ namespace ItemProposalAPI.Mappers
             };
         }
 
-        public static ItemNegotiationDto ToItemNegotiationDto(this Item itemModel, IEnumerable<Proposal> proposals)
+        public static ItemNegotiationDto ToItemNegotiationDto(this Item itemModel, IEnumerable<Proposal> proposals, User user)
         {
             return new ItemNegotiationDto
             {
@@ -28,7 +28,7 @@ namespace ItemProposalAPI.Mappers
                 Name = itemModel.Name,
                 Creation_Date = itemModel.Creation_Date,
                 Share_Status = itemModel.Share_Status,
-                Proposals = proposals.Select(p => p.ToProposalDto()).ToList()
+                Proposals = proposals.Select(p => p.ToProposalNegotiationDto(user)).ToList()
             };
         }
 

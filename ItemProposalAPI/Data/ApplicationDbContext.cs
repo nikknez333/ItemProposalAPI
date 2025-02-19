@@ -1,10 +1,12 @@
 ﻿using ItemProposalAPI.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace ItemProposalAPI.DataAccess
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<User>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> dbContextOptions) : base(dbContextOptions)
         {
@@ -12,7 +14,7 @@ namespace ItemProposalAPI.DataAccess
         }
 
         //Database tables that can be accessed through ApplicationDbContext
-        public DbSet<User> Users { get; set; }
+        //public DbSet<User> Users { get; set; }
         public DbSet<Party> Parties { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<Proposal> Proposal { get; set; }
@@ -22,6 +24,34 @@ namespace ItemProposalAPI.DataAccess
         //Set up many-to-many relationships with Fluent API
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+            
+            //App Identity Roles
+            List<IdentityRole> roles = new List<IdentityRole>
+            {
+                new IdentityRole
+                { 
+                    Id = "UserPartyOwner",
+                    Name = "UserPartyOwner",
+                    NormalizedName = "USERPARTYOWNER",
+                },
+
+                new IdentityRole
+                {
+                    Id = "UserPartyEmployee",
+                    Name = "UserPartyEmployee",
+                    NormalizedName = "USERPARTYEMPLOYEE",
+                },
+
+                new IdentityRole
+                {
+                    Id = "UserUnemployed",
+                    Name = "UserUnemployed",
+                    NormalizedName = "USERUNEMPLOYED",
+                },
+            };
+            modelBuilder.Entity<IdentityRole>().HasData(roles);
+
             modelBuilder.Entity<ItemParty>()
                 .HasKey(ip => new { ip.ItemId, ip.PartyId });
             modelBuilder.Entity<ItemParty>()
@@ -71,12 +101,73 @@ namespace ItemProposalAPI.DataAccess
             modelBuilder.Entity<ProposalItemParty>()
                 .Property(pip => pip.PaymentType)
                 .HasConversion<string>();
+            
+            modelBuilder.Entity<ProposalItemParty>()
+                .Property(pip => pip.Response)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<ProposalItemParty>()
+            .Property(p => p.PaymentAmount)
+            .HasColumnType("decimal(18,2)");
 
             //Add indexes to frequently queried data to boost query performance
         }
         
-        public static void Seed(ApplicationDbContext context)
+        public static async Task Seed(ApplicationDbContext context, UserManager<User> userManager)
         {
+            if(!context.Parties.Any())
+            {
+                var parties = new List<string>
+                {
+                    "Apple",
+                    "Google",
+                    "Facebook",
+                    "Microsoft",
+                    "Open AI"
+                };
+
+                foreach(var partyName in parties)
+                {
+                    var company = new Party
+                    {
+                        Name = partyName,
+                    };
+
+                    await context.Parties.AddAsync(company);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+
+            if(!context.Users.Any())
+            {               
+                var partyOwners = new List<(string username, string password,int partyId)>
+                {
+                    ("timCook3", "CoO3im!TIM", 1),
+                    ("sPichai881", "piCHAI99?8", 2),
+                    ("mArkZuck23", "zuCkie?226", 3),
+                    ("saTYaNadl115", "4_TYnadALL", 4),
+                    ("sAmAlt331", "AltMAN99!?", 5)
+                };
+
+                foreach(var partyOwner in partyOwners)
+                {
+                    var user = new User
+                    {
+                        UserName = partyOwner.username,
+                        PartyId = partyOwner.partyId,
+                    };
+
+                    var result = await userManager.CreateAsync(user, partyOwner.password);
+                    if(result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(user, "UserPartyOwner");
+                    }
+                }
+
+                await context.SaveChangesAsync();
+            }
+
             /*
             if (context.Users.Any())
                 return; // Exit if already seeded

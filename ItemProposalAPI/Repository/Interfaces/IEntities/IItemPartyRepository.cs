@@ -7,9 +7,10 @@ namespace ItemProposalAPI.Repository.Interfaces.IEntities
 {
     public interface IItemPartyRepository
     {
+        IQueryable<ItemParty> QueryItemParty();
         Task<IEnumerable<Item>> GetPartyItemsAsync(int? partyId, QueryObject? query);
-        Task<IEnumerable<Party>> GetPartiesSharingItemAsync(int? itemId);
-        Task<IEnumerable<ItemParty>?> GetAllAsync(params Expression<Func<ItemParty, object>>[] includes);
+        Task<IEnumerable<Party>> GetPartiesSharingItemAsync(int? itemId, int pageNumber = 1, int pageSize = 10);
+        Task<IEnumerable<ItemParty>?> GetAllAsync(int pageNumber, int pageSize, params Expression<Func<ItemParty, object>>[] includes);
         Task<ItemParty?> GetByIdAsync(int partyId, int itemId, params Expression<Func<ItemParty, object>>[] includes);
         Task<ItemParty> AddItemPartyAsync(ItemParty itemParty);
         Task<ItemParty?> RemoveItemPartyAsync(int partyId, int itemId);

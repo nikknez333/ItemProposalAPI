@@ -1,5 +1,6 @@
 ﻿using ItemProposalAPI.DTOs.Proposal;
 using ItemProposalAPI.Models;
+using System.Security.Claims;
 
 namespace ItemProposalAPI.Mappers
 {
@@ -16,25 +17,41 @@ namespace ItemProposalAPI.Mappers
                 Comment = proposal.Comment,
                 Proposal_Status = proposal.Proposal_Status,
                 CounterToProposalId = proposal.CounterToProposalId,
-                PaymentRatios = proposal.ProposalItemParties.Select(pip => pip.ToPaymentRatioDto()).ToList()
+                PaymentRatios = proposal.ProposalItemParties.Select(pip => pip.ToPaymentRatioWithStatusDto()).ToList()
             };
         }
 
-        public static Proposal ToProposalFromCreateDto(this CreateProposalRequestDto createProposalDto)
+       public static ProposalNegotiationDto ToProposalNegotiationDto(this Proposal proposal, User user)
+        {
+            var proposalCreator = proposal.User.PartyId.Equals(user.PartyId) ? proposal.User.UserName : proposal.User.Party.Name;
+
+            return new ProposalNegotiationDto
+            {
+                Id = proposal.Id,
+                CreatedBy = proposalCreator,
+                Created_At = proposal.Created_At,
+                Comment = proposal.Comment,
+                Proposal_Status = proposal.Proposal_Status,
+                CounterToProposalId = proposal.CounterToProposalId,
+                PaymentRatios = proposal.ProposalItemParties.Select(pip => pip.ToPaymentRatioNegotationDto(user)).ToList()
+            };
+        }
+
+        public static Proposal ToProposalFromCreateDto(this CreateProposalRequestDto createProposalDto, string userId)
         {
             return new Proposal
             {
-                UserId = createProposalDto.UserId,
+                UserId = userId,
                 ItemId = createProposalDto.ItemId,
                 Comment = createProposalDto.Comment,
             };
         }
 
-        public static Proposal ToCounterProposalFromCreateDto(this CreateCounterProposalRequestDto createProposalDto, Proposal originalProposal)
+        public static Proposal ToCounterProposalFromCreateDto(this CreateCounterProposalRequestDto createProposalDto, Proposal originalProposal, string userId)
         {
             return new Proposal
             {
-                UserId = createProposalDto.UserId,
+                UserId = userId,
                 ItemId = originalProposal.ItemId,
                 Comment = createProposalDto.Comment,
                 Proposal_Status = originalProposal.Proposal_Status,
@@ -47,6 +64,15 @@ namespace ItemProposalAPI.Mappers
             proposal.Comment = updateProposalDto.Comment;
 
             return proposal;
+        }
+
+        public static CreateCounterProposalRequestDto ToCounterProposalFromReviewDto(this ReviewProposalDto evaluateProposalDto)
+        {
+            return new CreateCounterProposalRequestDto
+            {
+                Comment = evaluateProposalDto.Comment,
+                PaymentRatios = evaluateProposalDto.PaymentRatios
+            };
         }
     }
 }

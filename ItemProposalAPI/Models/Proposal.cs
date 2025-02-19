@@ -5,7 +5,7 @@ namespace ItemProposalAPI.Models
     public class Proposal
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public int ItemId { get; set; }
         public DateTime Created_At { get; set; } = DateTime.Now;
         public string? Comment { get; set; } = string.Empty;

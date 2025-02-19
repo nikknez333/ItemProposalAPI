@@ -15,7 +15,12 @@ namespace ItemProposalAPI.Repository.Repositories
             _dbContext = dbContext;
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(/*QueryObject queryObject,*/ params Expression<Func<TEntity, object>>[] includes)
+        public IQueryable<TEntity> QueryEntity()
+        {
+            return _dbContext.Set<TEntity>().AsQueryable();
+        }
+
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize, params Expression<Func<TEntity, object>>[] includes)
         {
             IQueryable<TEntity> query = _dbContext.Set<TEntity>();
 
@@ -23,8 +28,8 @@ namespace ItemProposalAPI.Repository.Repositories
             {
                 query = query.Include(include);
             }
-            /*query = query.Skip((queryObject.PageNumber - 1) * queryObject.PageSize)
-            .Take(queryObject.PageSize);*/
+
+            query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
 
             return await query.ToListAsync();
         }
@@ -67,6 +72,11 @@ namespace ItemProposalAPI.Repository.Repositories
             _dbContext.Set<TEntity>().Remove(existingModel);
 
             return existingModel;
+        }
+
+        public async Task<bool> ExistsAsync(TPKey id)
+        {
+            return await _dbContext.Set<TEntity>().AnyAsync(entity => EF.Property<TPKey>(entity, "Id")!.Equals(id));
         }
     }
 }
