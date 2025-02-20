@@ -56,5 +56,6 @@ Otherwise, run:
 - C#
 - Entity Framework Core
 - SQL Server
+- Microsoft Identity & JWT Bearer for Authentication and Authorization
 - FluentValidation for input validation
 - Open API/Swagger for API documentation
