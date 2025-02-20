@@ -1,4 +1,4 @@
-
+﻿
 using FluentValidation;
 using ItemProposalAPI.DataAccess;
 using ItemProposalAPI.DTOs.Account;
@@ -25,6 +25,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace ItemProposalAPI
@@ -44,22 +45,22 @@ namespace ItemProposalAPI
             });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(s =>
+            builder.Services.AddSwaggerGen(options =>
             {
-                s.SchemaFilter<EnumSchemFilter>();
+                options.SchemaFilter<EnumSchemFilter>();
 
-                s.MapType<DateTime>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+                options.MapType<DateTime>(() => new Microsoft.OpenApi.Models.OpenApiSchema
                 {
                     Type = "string",
                     Format = "date-time"
                 });
-                s.MapType<DateTime?>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+                options.MapType<DateTime?>(() => new Microsoft.OpenApi.Models.OpenApiSchema
                 {
                     Type = "string",
                     Format = "date-time"
                 });
 
-                s.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
                     Description = "Please enter a valid token",
@@ -68,7 +69,7 @@ namespace ItemProposalAPI
                     BearerFormat = "JWT",
                     Scheme = "Bearer"
                 });
-                s.AddSecurityRequirement(new OpenApiSecurityRequirement
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
                         new OpenApiSecurityScheme
@@ -83,6 +84,27 @@ namespace ItemProposalAPI
                     }
                 });
 
+                //OpenAPI/Swagger documentation
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Item Proposal API",
+                    Description = "ASP.NET Web API that supports managing items and facilitating a proposal system between different parties/companies",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Nebojša Knežević",
+                        Email = "nebojsaknezz@gmail.com"
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "MIT License",
+                        Url = new Uri("https://opensource.org/licenses/MIT")
+                    }
+                });
+
+                //Include XML comments
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
 
             builder.Services.AddDbContext<ApplicationDbContext>(dbContextOptions =>
@@ -143,6 +165,8 @@ namespace ItemProposalAPI
             builder.Services.AddScoped<IValidator<LoginDto>, LoginAccountValidator>();
             builder.Services.AddScoped<IValidator<ReviewProposalDto>, ReviewProposalValidator>();
 
+            
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -157,10 +181,13 @@ namespace ItemProposalAPI
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI(s =>
+                app.UseSwaggerUI(options =>
                 {
-                    s.DisplayRequestDuration();
-                    s.ConfigObject.AdditionalItems["operationsSorter"] = "method";
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                    options.RoutePrefix = string.Empty;
+
+                    options.DisplayRequestDuration();
+                    options.ConfigObject.AdditionalItems["operationsSorter"] = "method";
                 });
             }
 

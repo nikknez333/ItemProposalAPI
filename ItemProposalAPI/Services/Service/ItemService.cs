@@ -150,6 +150,5 @@ namespace ItemProposalAPI.Services.Service
 
             return Result<Item>.Success(deletedItem);
         }
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using ItemProposalAPI.DTOs.User;
+﻿using ItemProposalAPI.DTOs.Item;
+using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.QueryHelper;
 using ItemProposalAPI.Services.Interfaces;
@@ -23,7 +24,24 @@ namespace ItemProposalAPI.Controllers
             _userService = userService;
         }
 
+
+        /// <summary>
+        /// Retrieves all items belonging to the currently authenticated user's party.
+        /// </summary>
+        /// <param name="query">Optional query parameters for filtering, sorting and pagination.</param>
+        /// <remarks>
+        /// Sample request:
+        ///     
+        ///     GET /api/user/party/items
+        ///     
+        /// </remarks>
+        /// <returns>Returns a list of items associated with user's party.</returns>
+        /// <response code="200">Successfully retrieved user's party items</response>
+        /// <response code="404">User is not associated with any party or no matching items were found</response>
         [HttpGet("party/items")]
+        [ProducesResponseType(typeof(IEnumerable<ItemWithoutProposalsDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetAllMyPartyItems([FromQuery] QueryObject query)
         {
             var result = await _userService.GetMyPartyItemsAsync(User, query);
@@ -34,6 +52,7 @@ namespace ItemProposalAPI.Controllers
         }
 
         [HttpGet("proposals")]
+        //TODO: FIX THIS
         public async Task<IActionResult> GetMyProposals([FromQuery] PaginationObject pagination)
         {
             var result = await _userService.GetMyProposals(User, pagination);
