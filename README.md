@@ -12,18 +12,16 @@ Before running the application, ensure you have:
 
 # 🛠️ Setup & Installation
 1️⃣ Clone the Repository
-```bash
-- git clone https://github.com/nikknez333/ItemProposalAPI.git
-- cd ItemProposalAPI
+- `git clone https://github.com/nikknez333/ItemProposalAPI.git`
+- `cd ItemProposalAPI`
   
 2️⃣ Configure the Database
 - Edit appsettings.json and update the connection string:
-```bash
-{
+`{
   "ConnectionStrings": {
     "DefaultConnection": "Server=YOUR_SERVER;Database=ItemProposalDatabase;Trusted_Connection=True;"
   }
-}
+}`
 
 3️⃣ Install Dependencies
 - If you're using Visual Studio, dependencies will be restored automatically.
