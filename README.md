@@ -18,11 +18,11 @@ Before running the application, ensure you have:
 2️⃣ Configure the Database
 - Edit appsettings.json and update the connection string:
   
-```{
+```
   "ConnectionStrings": {
     "DefaultConnection": "Server=YOUR_SERVER;Database=ItemProposalDatabase;Trusted_Connection=True;"
   }
-}```
+```
 
 3️⃣ Install Dependencies
 - If you're using Visual Studio, dependencies will be restored automatically.
