@@ -13,8 +13,8 @@ Before running the application, ensure you have:
 # 🛠️ Setup & Installation
 1️⃣ Clone the Repository
 ```
-- git clone https://github.com/nikknez333/ItemProposalAPI.git
-- cd ItemProposalAPI
+  git clone https://github.com/nikknez333/ItemProposalAPI.git
+  cd ItemProposalAPI
 ```
 2️⃣ Configure the Database
 - Edit appsettings.json and update the connection string:
