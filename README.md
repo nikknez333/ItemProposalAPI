@@ -12,11 +12,13 @@ Before running the application, ensure you have:
 
 # 🛠️ Setup & Installation
 1️⃣ Clone the Repository
+```bash
 - git clone https://github.com/nikknez333/ItemProposalAPI.git
 - cd ItemProposalAPI
   
 2️⃣ Configure the Database
 - Edit appsettings.json and update the connection string:
+```bash
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=YOUR_SERVER;Database=ItemProposalDatabase;Trusted_Connection=True;"
@@ -26,14 +28,17 @@ Before running the application, ensure you have:
 3️⃣ Install Dependencies
 - If you're using Visual Studio, dependencies will be restored automatically.
 Otherwise, run:
+  ```bash
   dotnet restore
 
 4️⃣ Apply Database Migrations
 - Run the following command to apply database migrations:
+  ```bash
   dotnet ef database update
   
 5️⃣ Run the Application
 - Start the API by using following command:
+  ```bash
   dotnet run
   
 # 📖 API Documentation
