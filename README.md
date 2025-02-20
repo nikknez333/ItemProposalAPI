@@ -11,7 +11,7 @@ Before running the application, ensure you have:
 - [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) or [Visual Studio Code](https://code.visualstudio.com/download) - installed
 
 # 🛠️ Setup & Installation
-1️⃣ Clone the Repository
+# 1️⃣ Clone the Repository
 ```
   git clone https://github.com/nikknez333/ItemProposalAPI.git
   cd ItemProposalAPI
