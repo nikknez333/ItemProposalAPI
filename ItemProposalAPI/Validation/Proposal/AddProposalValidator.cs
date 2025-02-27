@@ -28,7 +28,8 @@ namespace ItemProposalAPI.Validation.Proposal
                 .GreaterThan(0).WithMessage("Item ID must be higher than 0")
                 .MustAsync(ItemExists).WithMessage(p => $"Item with ID:{p.ItemId} does not exist.")
                 .MustAsync(IsItemShared).WithMessage(p => $"Proposal for item with ID: {p.ItemId} can't be made, because the item is not shared.")
-                .MustAsync(ItemHasNoExistingProposal).WithMessage(p => $"A proposal already exists for this Item with ID:{p.ItemId}. Please submit a counterproposal instead.")
+                .MustAsync(ItemHasNoExistingPendingProposal)
+                .WithMessage(p => $"A proposal already exists for this Item with ID:{p.ItemId} or item status is still Pending. Please submit a counterproposal instead.")
                 .CustomAsync(async (itemId, valContext, token) =>
                 {
                     var username = valContext.RootContextData["Username"] as string ?? "";
@@ -94,11 +95,15 @@ namespace ItemProposalAPI.Validation.Proposal
             return item?.Share_Status != Status.Not_Shared;
         }
 
-        private async Task<bool> ItemHasNoExistingProposal(int? itemId, CancellationToken token)
+        private async Task<bool> ItemHasNoExistingPendingProposal(int? itemId, CancellationToken token)
         {
             var existingProposal = await _unitOfWork.ProposalRepository.GetNegotiationDetails((int)itemId);
+            if(existingProposal != null && !existingProposal.Any())
+                return true;
 
-            return existingProposal != null && !existingProposal.Any();
+            var proposalHasPendingStatus = !existingProposal.LastOrDefault().Proposal_Status.Equals(Proposal_Status.Pending);
+
+            return proposalHasPendingStatus;
         }
 
         private async Task<bool> AllInvolvedPartiesHavePaymentRatios(int? itemId, List<PaymentRatioDto>? paymentRatios, CancellationToken token)
