@@ -50,7 +50,10 @@ Otherwise, run:
 - The API is built using .NET 8 with Entity Framework Core and a SQL Server database.
 - Users must be authenticated to interact with API
 - Only authorized parties can use certain endpoints.
-  
+- There are 3 type of Users: Party Owner, Party Employee, Unemployed User.
+- Currently public registration allow registration for either Party Employee or Unemployed Users.
+- Party Owners are seeded to database after initial run of application.
+    
 # 💻 Tech Stack
 - .NET 8
 - C#
