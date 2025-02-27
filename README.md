@@ -1,7 +1,7 @@
 # Item Proposal Management API
 
 # 🚀 Overview
-- NET-based backend API that supports managing items and facilitating a proposal system between different parties/companies, allowing users to create, review, update, and delete proposals with associated payment ratios. The API follows RESTful principles and supports authentication and validation mechanisms.
+- NET-based backend API that supports managing items and facilitating a proposal system between different parties/companies, allowing users to create, review, update, and delete proposals with associated payment ratios. The API follows RESTful principles and supports authentication, authorization and validation mechanisms.
   
 # 📋 Prerequisites
 Before running the application, ensure you have:
