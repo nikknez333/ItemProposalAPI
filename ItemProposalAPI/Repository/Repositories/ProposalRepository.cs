@@ -16,7 +16,7 @@ namespace ItemProposalAPI.Repository.Repositories
 
         public async Task<IEnumerable<Proposal>?> GetNegotiationDetails(int itemId, int pageNumber, int pageSize)
         { 
-            IQueryable<Proposal> query = _dbContext.Proposal;
+            IQueryable<Proposal> query = _dbContext.Proposals;
 
             var proposalsForItem = query
                         .Where(p => p.ItemId == itemId)
@@ -36,6 +36,22 @@ namespace ItemProposalAPI.Repository.Repositories
                 .Take(pageSize);
 
             return await proposalsForItem.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Proposal>?> GetUserProposals(string userId, int pageNumber, int pageSize)
+        {
+            IQueryable<Proposal> query = _dbContext.Proposals;
+
+            var userProposals = query
+                .Where(p => p.UserId == userId)
+                .Include(p => p.ProposalItemParties)
+                .AsQueryable();
+
+            userProposals = userProposals
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            return await userProposals.ToListAsync();
         }
     }
 }

@@ -39,12 +39,14 @@ namespace ItemProposalAPI.Controllers
         /// <response code="401">User is not authenticated.</response>
         /// <response code="403">User lacks necessary permissions to access resource.</response>
         /// <response code="404">No parties exists in system.</response>
+        /// <response code="500">Unexpected error while processing the request.</response>
         [HttpGet]
         [Authorize(Roles = "UserPartyEmployee, UserPartyOwner")]
         [ProducesResponseType(typeof(IEnumerable<PartyWithoutUsersDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Produces("application/json")]
         public async Task<IActionResult> GetAll([FromQuery] PaginationObject pagination)
         {
@@ -70,12 +72,14 @@ namespace ItemProposalAPI.Controllers
         /// <response code="401">User is not authenticated.</response>
         /// <response code="403">User lacks necessary permissions to access resource.</response>
         /// <response code="404">Party with the given ID does not exist.</response>
+        /// <response code="500">Unexpected error while processing the request.</response>
         [HttpGet("{id:int}")]
         [Authorize(Roles = "UserPartyEmployee, UserPartyOwner")]
         [ProducesResponseType(typeof(PartyDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Produces("application/json")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
@@ -101,12 +105,14 @@ namespace ItemProposalAPI.Controllers
         /// <response code="401">User is not authenticated.</response>
         /// <response code="403">User lacks necessary permissions to access resource.</response>
         /// <response code="404">Party with the given ID does not exist or has no items.</response>
+        /// <response code="500">Unexpected error while processing the request.</response>
         [HttpGet("{partyId:int}/items")]
         [Authorize(Roles = "UserPartyEmployee, UserPartyOwner")]
         [ProducesResponseType(typeof(IEnumerable<ItemWithoutProposalsDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Produces("application/json")]
         public async Task<IActionResult> GetPartyItems([FromRoute] int partyId)
         {
@@ -136,11 +142,13 @@ namespace ItemProposalAPI.Controllers
         /// <response code="400">Invalid request data (e.g., missing required fields, validation errors).</response>
         /// <response code="401">User is not authenticated.</response>
         /// <response code="403">User lacks necessary permissions to create resource.</response>
+        /// <response code="500">Unexpected error while processing the request.</response>
         [HttpPost]
         [ProducesResponseType(typeof(PartyWithoutUsersDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Produces("application/json")]
         public async Task<IActionResult> Add([FromBody] CreatePartyRequestDto createPartyDto)
         {

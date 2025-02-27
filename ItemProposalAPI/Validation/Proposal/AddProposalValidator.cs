@@ -5,6 +5,7 @@ using ItemProposalAPI.Models;
 using ItemProposalAPI.UnitOfWorkPattern.Interface;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -65,7 +66,7 @@ namespace ItemProposalAPI.Validation.Proposal
             {
                 pr.RuleFor(pr => pr.PartyId)
                     .Cascade(CascadeMode.Stop)
-                    .NotNull().WithMessage("Party ID is required.")
+                    .NotEmpty().WithMessage("Party ID is required.")
                     .GreaterThan(0).WithMessage("Party ID must be greater than 0.");
 
                 pr.RuleFor(pr => pr.PaymentType)
@@ -75,32 +76,32 @@ namespace ItemProposalAPI.Validation.Proposal
 
                 pr.RuleFor(pr => pr.PaymentAmount)
                     .Cascade(CascadeMode.Stop)
-                    .NotNull().WithMessage("Payment amount is required.")
+                    .NotEmpty().WithMessage("Payment amount is required.")
                     .GreaterThanOrEqualTo(0).WithMessage("Payment amount cannot be negative value.");
             });
 
         }
 
-        private async Task<bool> ItemExists(int itemId, CancellationToken token)
+        private async Task<bool> ItemExists(int? itemId, CancellationToken token)
         {
-            return await _unitOfWork.ItemRepository.ExistsAsync(itemId);
+            return await _unitOfWork.ItemRepository.ExistsAsync((int)itemId);
         }
 
-        private async Task<bool> IsItemShared(int itemId, CancellationToken token)
+        private async Task<bool> IsItemShared(int? itemId, CancellationToken token)
         {
-            var item = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
+            var item = await _unitOfWork.ItemRepository.GetByIdAsync((int)itemId);
 
             return item?.Share_Status != Status.Not_Shared;
         }
 
-        private async Task<bool> ItemHasNoExistingProposal(int itemId, CancellationToken token)
+        private async Task<bool> ItemHasNoExistingProposal(int? itemId, CancellationToken token)
         {
-            var existingProposal = await _unitOfWork.ProposalRepository.GetNegotiationDetails(itemId);
+            var existingProposal = await _unitOfWork.ProposalRepository.GetNegotiationDetails((int)itemId);
 
             return existingProposal != null && !existingProposal.Any();
         }
 
-        private async Task<bool> AllInvolvedPartiesHavePaymentRatios(int itemId, List<PaymentRatioDto> paymentRatios, CancellationToken token)
+        private async Task<bool> AllInvolvedPartiesHavePaymentRatios(int? itemId, List<PaymentRatioDto>? paymentRatios, CancellationToken token)
         {
             var involvedParties = await _unitOfWork.ItemPartyRepository
                 .QueryItemParty()
@@ -109,17 +110,17 @@ namespace ItemProposalAPI.Validation.Proposal
                 .ToListAsync();
 
             var involedPartyIds = involvedParties.Select(p => p.Id).ToList();
-            var providedPartyIds = paymentRatios.Select(pr => pr.PartyId).ToList();
+            var providedPartyIds = paymentRatios.Select(pr => pr.PartyId ?? -1).ToList();
 
             return providedPartyIds.Count == involedPartyIds.Count && !involedPartyIds.Except(providedPartyIds).Any();
         }
 
-        private async Task<bool> HaveSamePaymentType(List<PaymentRatioDto> paymentRatios, CancellationToken token)
+        private async Task<bool> HaveSamePaymentType(List<PaymentRatioDto>? paymentRatios, CancellationToken token)
         {
             return paymentRatios.Select(pr => pr.PaymentType).Distinct().Count() == 1;
         }
 
-        private async Task<bool> IsValidPercentageTotal(List<PaymentRatioDto> paymentRatios, CancellationToken token)
+        private async Task<bool> IsValidPercentageTotal(List<PaymentRatioDto>? paymentRatios, CancellationToken token)
         {
             if (paymentRatios.First().PaymentType == PaymentType.Percentage)
                 return paymentRatios.Sum(pr => pr.PaymentAmount) == 100;

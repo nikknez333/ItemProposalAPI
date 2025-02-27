@@ -34,7 +34,7 @@ namespace ItemProposalAPI.Validation.Proposal
                         .ToListAsync();
 
                     var involedPartyIds = involvedParties.Select(p => p.Id).ToList();
-                    var providedPartyIds = paymentRatios.Select(pr => pr.PartyId).ToList();
+                    var providedPartyIds = paymentRatios.Select(pr => pr.PartyId ?? -1).ToList();
 
                     if (!(providedPartyIds.Count == involedPartyIds.Count && !involedPartyIds.Except(providedPartyIds).Any()))
                     {

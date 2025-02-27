@@ -42,7 +42,7 @@ namespace ItemProposalAPI.Mappers
             return new Proposal
             {
                 UserId = userId,
-                ItemId = createProposalDto.ItemId,
+                ItemId = (int)createProposalDto.ItemId,
                 Comment = createProposalDto.Comment,
             };
         }
@@ -54,7 +54,7 @@ namespace ItemProposalAPI.Mappers
                 UserId = userId,
                 ItemId = originalProposal.ItemId,
                 Comment = createProposalDto.Comment,
-                Proposal_Status = originalProposal.Proposal_Status,
+                Proposal_Status = Proposal_Status.Pending,
                 CounterToProposalId = originalProposal.Id,
             };
         }

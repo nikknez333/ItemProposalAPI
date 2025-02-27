@@ -23,21 +23,21 @@ namespace ItemProposalAPI.Controllers
         }
 
         /// <summary>
-        /// Retrieves a list of item-party relationships.
+        /// Retrieves a list of all item-party relationships.
         /// </summary>
-        /// <param name="pagination">Optional pagination parameters (page number and page size).</param>
-        /// /// <remarks>
+        /// <param name="pagination">Optional pagination object parameter (page number and page size).</param>
+        /// <remarks>
         /// Sample request:
-        /// 
-        ///     GET /api/itemParties?pageNumber=1&pageSize=10
-        /// 
-        /// </remarks>
-        /// <returns></returns>
-        /// <response code="200">Successfully retrieved the item-party relationships.</response>
+        ///     
+        ///     GET /api/item-parties
+        ///     
+        /// </remarks> 
+        /// <returns>Returns a list of all item-party relationships.</returns>
+        /// <response code="200">Successfully retrieved the list of item-parties</response>
         /// <response code="401">User is not authenticated.</response>
-        /// <response code="403">User lacks necessary permissions.</response>
-        /// <response code="404">No item-party relationships found.</response>
-        /// <response code="500">Unexpected error while processing the request.</response>
+        /// <response code="403">User lacks necessary permissions to access resource.</response>
+        /// <response code="404">No item-party exists in system.</response>
+        /// <response code="500">Unexpected error while processing request.</response>
         [HttpGet]
         [Authorize(Roles = "UserPartyOwner,UserPartyEmployee")]
         [ProducesResponseType(typeof(IEnumerable<ItemPartyDto>), StatusCodes.Status200OK)]
@@ -121,7 +121,7 @@ namespace ItemProposalAPI.Controllers
                 });
             }
 
-            return CreatedAtAction(nameof(GetById), new {result.Data.PartyId,  result.Data.ItemId}, result.Data);
+            return CreatedAtAction(nameof(GetById), new {result.Data.PartyId,  result.Data.ItemId}, result.Data.ToItemPartyAddResultDto());
         }
 
         /// <summary>

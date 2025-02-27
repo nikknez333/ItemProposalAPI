@@ -86,25 +86,16 @@ namespace ItemProposalAPI.Services.Service
                 var proposalItemParty = new ProposalItemParty
                 {
                     ProposalId = addedProposal.Id,
-                    ItemId = createProposalDto.ItemId,
-                    PartyId = ratio.PartyId,
-                    PaymentType = ratio.PaymentType,
-                    PaymentAmount = ratio.PaymentAmount
+                    ItemId = (int)createProposalDto.ItemId,
+                    PartyId = (int)ratio.PartyId,
+                    PaymentType = (PaymentType)ratio.PaymentType,
+                    PaymentAmount = (decimal)ratio.PaymentAmount
                 };
 
                 await _unitOfWork.ProposalItemPartyRepository.AddAsync(proposalItemParty);
             }
 
             await _unitOfWork.SaveChangesAsync();
-
-            var myPartyId = validationContext.RootContextData["UserPartyId"] as int?;
-
-            var myPaymentRatio = addedProposal.ProposalItemParties.FirstOrDefault(x => x.ProposalId == addedProposal.Id && x.ItemId == addedProposal.ItemId && x.PartyId == myPartyId);
-            myPaymentRatio.Response = Proposal_Status.Accepted;
-            myPaymentRatio.UserId = userId;
-
-            await _unitOfWork.SaveChangesAsync();
-
             await _unitOfWork.CommitAsync();
 
             return Result<Proposal>.Success(proposalModel);
@@ -147,20 +138,13 @@ namespace ItemProposalAPI.Services.Service
                 {
                     ProposalId = addedCounterProposal.Id,
                     ItemId = ProposalToCounter.ItemId,
-                    PartyId = ratio.PartyId,
-                    PaymentType = ratio.PaymentType,
-                    PaymentAmount = ratio.PaymentAmount,
+                    PartyId = (int)ratio.PartyId,
+                    PaymentType = (PaymentType)ratio.PaymentType,
+                    PaymentAmount = (decimal)ratio.PaymentAmount,
                 };
 
                 await _unitOfWork.ProposalItemPartyRepository.AddAsync(proposalItemParty);
             }
-            await _unitOfWork.SaveChangesAsync();
-
-            int? myPartyId = validationContext.RootContextData["UserPartyId"] as int?;
-
-            var myPaymentRatio = addedCounterProposal.ProposalItemParties.FirstOrDefault(x => x.ProposalId == addedCounterProposal.Id && x.ItemId == addedCounterProposal.ItemId && x.PartyId == myPartyId);
-            myPaymentRatio.Response = Proposal_Status.Accepted;
-            myPaymentRatio.UserId = userId;
 
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
@@ -203,34 +187,48 @@ namespace ItemProposalAPI.Services.Service
             //if you want to accept proposal, set response status of your party mentioned in payment ratios to accept
             if (reviewProposalDto.Response == Proposal_Status.Accepted)
             {
-                ratio.Response = Proposal_Status.Accepted;
-                ratio.UserId = user.Id;
+                if (ratio.Response == Proposal_Status.Pending)
+                {
+                    ratio.Response = Proposal_Status.Accepted;
+                    ratio.UserId = user.Id;
 
-                var allAccepted = proposalToEvaluate.ProposalItemParties.All(pip => pip.Response == Proposal_Status.Accepted);
-                if (allAccepted)
-                    proposalToEvaluate.Proposal_Status = Proposal_Status.Accepted;
+                    var allAccepted = proposalToEvaluate.ProposalItemParties.All(pip => pip.Response == Proposal_Status.Accepted);
+                    if (allAccepted)
+                        proposalToEvaluate.Proposal_Status = Proposal_Status.Accepted;
 
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitAsync();
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitAsync();
 
-                return Result<ProposalDto>.Success(proposalToEvaluate.ToProposalDto());
+                    return Result<ProposalDto>.Success(proposalToEvaluate.ToProposalDto());
+                }
+                else
+                {
+                    return Result<ProposalDto>.Failure(ErrorType.BadRequest, $"You cannot accept proposal in front of party with ID: {ratio.PartyId}, since proposal is already {ratio.Response} by them.");
+                }
             }
             else if(reviewProposalDto.Response == Proposal_Status.Rejected)
             {
-                ratio.Response = Proposal_Status.Rejected;
-                ratio.UserId = user.Id;
+                if (ratio.Response == Proposal_Status.Pending)
+                {
+                    ratio.Response = Proposal_Status.Rejected;
+                    ratio.UserId = user.Id;
 
-                proposalToEvaluate.Proposal_Status = Proposal_Status.Rejected;
+                    proposalToEvaluate.Proposal_Status = Proposal_Status.Rejected;
 
-                await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.SaveChangesAsync();
 
-                var counterProposalDto = reviewProposalDto.ToCounterProposalFromReviewDto();
+                    var counterProposalDto = reviewProposalDto.ToCounterProposalFromReviewDto();
 
-                var result = await AddCounterProposalAsync(proposalId, counterProposalDto, User);
-                if (!result.IsSuccess)
-                    return Result<ProposalDto>.Failure(result.ErrorType, result.Errors);
+                    var result = await AddCounterProposalAsync(proposalId, counterProposalDto, User);
+                    if (!result.IsSuccess)
+                        return Result<ProposalDto>.Failure(result.ErrorType, result.Errors);
 
-                return Result<ProposalDto>.Success(proposalToEvaluate.ToProposalDto());
+                    return Result<ProposalDto>.Success(proposalToEvaluate.ToProposalDto());
+                }
+                else
+                {
+                    return Result<ProposalDto>.Failure(ErrorType.BadRequest, $"You cannot reject proposal in front of party with ID: {ratio.PartyId}, since proposal is already {ratio.Response} by them.");
+                }
             }
 
             return Result<ProposalDto>.Failure(ErrorType.BadRequest, $"Invalid response for Proposal with ID:{proposalId}. Allowed Responses: Accepted, Rejected");
@@ -267,11 +265,13 @@ namespace ItemProposalAPI.Services.Service
         public async Task<Result<Proposal>> DeleteAsync(int proposalId)
         {
             var transaction = _unitOfWork.BeginTransactionAsync();
-            
-            var deletedProposal = await _unitOfWork.ProposalRepository.DeleteAsync(proposalId);
-            if (deletedProposal == null)
+
+            var loadedProposal = await _unitOfWork.ProposalRepository.GetByIdAsync(proposalId, p => p.ProposalItemParties);
+            if (loadedProposal == null)
                 return Result<Proposal>.Failure(ErrorType.NotFound, $"Proposal with ID: {proposalId} does not exist.");
 
+            var deletedProposal = await _unitOfWork.ProposalRepository.DeleteAsync(loadedProposal.Id);
+            
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
 

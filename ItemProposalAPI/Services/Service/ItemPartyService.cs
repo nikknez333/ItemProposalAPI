@@ -79,10 +79,12 @@ namespace ItemProposalAPI.Services.Service
         {
             var transaction = _unitOfWork.BeginTransactionAsync();
 
-            var deletedItemParty = await _unitOfWork.ItemPartyRepository.RemoveItemPartyAsync(partyId, itemId);
-            if (deletedItemParty == null)
+            var loadedItemParty = await _unitOfWork.ItemPartyRepository.GetByIdAsync(partyId, itemId);
+            if (loadedItemParty == null)
                 return Result<ItemParty>.Failure(ErrorType.NotFound, $"ItemParty with party ID:{partyId} / item ID: {itemId} does not exist.");
 
+            var deletedItemParty = await _unitOfWork.ItemPartyRepository.RemoveItemPartyAsync(loadedItemParty.PartyId, loadedItemParty.ItemId);
+            
             await _unitOfWork.SaveChangesAsync();
 
             var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItemAsync(itemId);

@@ -58,12 +58,17 @@ namespace ItemProposalAPI.Repository.Repositories
                     {
                         partyItems = query.IsDescending ? partyItems.OrderByDescending(pi => pi.Creation_Date) : partyItems.OrderBy(pi => pi.Creation_Date);
                     }
-                    if(query.SortBy.ToString().Equals("Shared_Status"))
+                    if(query.SortBy.ToString().Equals("Share_Status"))
                     {
                         partyItems = query.IsDescending ? partyItems.OrderByDescending(pi => pi.Share_Status) : partyItems.OrderBy(pi => pi.Share_Status);
                     }
                 }
+
+                partyItems = partyItems
+                    .Skip((query.PageNumber - 1) * query.PageSize)
+                    .Take(query.PageSize);
             }
+
             return await partyItems.ToListAsync();
         }
 
@@ -113,14 +118,31 @@ namespace ItemProposalAPI.Repository.Repositories
 
         public async Task<ItemParty?> RemoveItemPartyAsync(int partyId, int itemId)
         {
-            var existingItemParty = await _dbContext.ItemParties.FirstOrDefaultAsync(ip => ip.PartyId == partyId && ip.ItemId == itemId);
+            var existingItemParty = await _dbContext.ItemParties
+                .Include(ip => ip.ProposalItemParties)
+                .FirstOrDefaultAsync(ip => ip.PartyId == partyId && ip.ItemId == itemId);
 
             if (existingItemParty == null)
                 return null;
 
+            var proposalIds = existingItemParty.ProposalItemParties
+                .Select(pip => pip.ProposalId)
+                .Distinct()
+                .ToList();
+
+            var affectedProposals = await _dbContext.Proposals
+                .Where(p => proposalIds.Contains(p.Id))
+                .ToListAsync();
+
+            _dbContext.Proposals.RemoveRange(affectedProposals);
             _dbContext.Remove(existingItemParty);
 
             return existingItemParty;
+        }
+
+        public async Task<bool> ExistsAsync(int partyId, int itemId)
+        {
+            return await _dbContext.ItemParties.AnyAsync(ip => ip.PartyId == partyId && ip.ItemId == itemId);
         }
     }
 }

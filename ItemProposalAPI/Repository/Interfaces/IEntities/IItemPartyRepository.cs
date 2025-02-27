@@ -14,5 +14,6 @@ namespace ItemProposalAPI.Repository.Interfaces.IEntities
         Task<ItemParty?> GetByIdAsync(int partyId, int itemId, params Expression<Func<ItemParty, object>>[] includes);
         Task<ItemParty> AddItemPartyAsync(ItemParty itemParty);
         Task<ItemParty?> RemoveItemPartyAsync(int partyId, int itemId);
+        Task<bool> ExistsAsync(int partyId, int itemId);
     }
 }

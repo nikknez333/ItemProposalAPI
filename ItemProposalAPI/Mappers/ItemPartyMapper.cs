@@ -21,5 +21,14 @@ namespace ItemProposalAPI.Mappers
                 ItemId = createItemPartyDto.ItemId,
             };
         }
+
+        public static ItemPartyAddResultDto ToItemPartyAddResultDto(this ItemParty itemPartyModel)
+        {
+            return new ItemPartyAddResultDto
+            {
+                PartyId = itemPartyModel.PartyId,
+                ItemId = itemPartyModel.ItemId,
+            };
+        }
     }
 }

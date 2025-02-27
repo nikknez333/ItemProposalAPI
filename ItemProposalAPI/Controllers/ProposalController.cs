@@ -22,29 +22,28 @@ namespace ItemProposalAPI.Controllers
     public class ProposalController : ControllerBase
     {
         private readonly IProposalService _proposalService;
-
+       
         public ProposalController(IProposalService proposalService)
         {
             _proposalService = proposalService;
         }
 
-
         /// <summary>
         /// Retrieves a list of all proposals.
         /// </summary>
-        /// <param name="pagination">Optional pagination parameters (page number and page size).</param>
+        /// <param name="pagination">Optional pagination object parameter (page number and page size).</param>
         /// <remarks>
         /// Sample request:
         ///     
-        ///     GET /api/proposals?pageNumber=1&pageSize=10
-        /// 
-        /// </remarks>
+        ///     GET /api/proposals
+        ///     
+        /// </remarks> 
         /// <returns>Returns a list of all proposals.</returns>
-        /// <response code="200">Successfully retrieved the list of proposals.</response>
+        /// <response code="200">Successfully retrieved the list of proposals</response>
         /// <response code="401">User is not authenticated.</response>
         /// <response code="403">User lacks necessary permissions to access resource.</response>
-        /// <response code="404">No proposals found.</response>
-        /// <response code="500">Unexpected error while processing the request.</response>
+        /// <response code="404">No proposals exists in system.</response>
+        /// <response code="500">Unexpected error while processing request.</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ProposalDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -141,7 +140,7 @@ namespace ItemProposalAPI.Controllers
 
             return CreatedAtAction(nameof(GetById), new {id = result.Data.Id}, result.Data.ToProposalDto());
         }
-
+        /*
         /// <summary>
         ///  Creates a counter-proposal for an existing proposal.
         /// </summary>
@@ -198,7 +197,7 @@ namespace ItemProposalAPI.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result.Data.ToProposalDto());
         }
-
+        */
         /// <summary>
         /// Reviews a proposal by accepting or rejecting it with counter proposal.
         /// </summary>
@@ -240,7 +239,7 @@ namespace ItemProposalAPI.Controllers
         /// <response code="403">User is not allowed to review this proposal.</response>
         /// <response code="404">The proposal does not exist.</response>
         /// <response code="500">Unexpected error while processing the request.</response>
-        [HttpPost("{proposalId:int}/payment-ratios")]
+        [HttpPost("{proposalId:int}")]
         [ProducesResponseType(typeof(ProposalDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

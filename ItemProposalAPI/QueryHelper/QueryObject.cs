@@ -7,6 +7,9 @@ namespace ItemProposalAPI.QueryHelper
 {
     public class QueryObject
     {
+        private const int maxPageSize = 100;
+        private int _pageSize = 10;
+
         //Filtering
         public string? Name { get; set; } = null;
         public DateTime? From_Creation_Date { get; set; } = null;
@@ -15,8 +18,12 @@ namespace ItemProposalAPI.QueryHelper
         //Sorting
         public SortOptions SortBy { get; set; }
         public bool IsDescending { get; set; } = false;
-        /*public int PageNumber { get; set; } = 1;
-        public int PageSize { get; set; } = 20;*/
+        public int PageNumber { get; set; } = 1;
+        public int PageSize
+        {
+            get => _pageSize;
+            set => _pageSize = (value > maxPageSize) ? maxPageSize : value;
+        }
     }
 
     public enum SortOptions

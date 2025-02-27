@@ -6,6 +6,6 @@ namespace ItemProposalAPI.DTOs.Proposal
     {
         //public string UserId { get; set; }
         public string Comment { get; set; }
-        public List<PaymentRatioDto> PaymentRatios { get; set; } = new List<PaymentRatioDto>();
+        public List<PaymentRatioDto>? PaymentRatios { get; set; } = new List<PaymentRatioDto>();
     }
 }

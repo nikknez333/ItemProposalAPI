@@ -115,12 +115,28 @@ namespace ItemProposalAPI.Services.Service
         public async Task<Result<Party>> DeleteAsync(int partyId)
         {
             var transaction = _unitOfWork.BeginTransactionAsync();
-
+            
             var deletedParty = await _unitOfWork.PartyRepository.DeleteAsync(partyId);
-            if (deletedParty == null)
+            if(deletedParty == null)
                 return Result<Party>.Failure(ErrorType.NotFound, $"Party with ID: {partyId} does not exist.");
 
             await _unitOfWork.SaveChangesAsync();
+
+            var affectedItemsIds = deletedParty.ItemParties.Select(ip => ip.ItemId).Distinct().ToList();
+
+            foreach (var itemId in affectedItemsIds)
+            {
+                var partiesSharingItem = await _unitOfWork.ItemPartyRepository.GetPartiesSharingItemAsync(itemId);
+                if (partiesSharingItem.Count() <= 1)
+                {
+                    var itemModel = await _unitOfWork.ItemRepository.GetByIdAsync(itemId);
+                    itemModel.Share_Status = Status.Not_Shared;
+                    _unitOfWork.ItemRepository.UpdateAsync(itemModel);
+
+                    await _unitOfWork.SaveChangesAsync();
+                }
+            }
+
             await _unitOfWork.CommitAsync();
 
             return Result<Party>.Success(deletedParty);

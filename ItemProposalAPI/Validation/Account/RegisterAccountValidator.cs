@@ -18,6 +18,7 @@ namespace ItemProposalAPI.Validation.Account
             _userManager = userManager;
 
             RuleFor(u => u.Username)
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Username is required.")
                 .MinimumLength(3).WithMessage("Username must be at least 3 characters long.")
                 .MaximumLength(20).WithMessage("Username must not exceed 20 characters.")
@@ -25,13 +26,14 @@ namespace ItemProposalAPI.Validation.Account
                 .MustAsync(IsUsernameNotTaken).WithMessage("Username is taken, please provide another.");
 
             RuleFor(u => u.Password)
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Password is required")
                 .MinimumLength(10).WithMessage("Password must be at least 10 characters long.")
                 .Matches("[A-Z]").WithMessage("Password must contain at least one upperacase letter.")
                 .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
                 .Matches("[0-9]").WithMessage("Password must contain at least one number.")
                 .Matches("[^a-zA-Z0-9]").WithMessage("Password must containt at least one special character.");
-
+                
             RuleFor(u => u.PartyId)
                 .Cascade(CascadeMode.Stop)
                 .GreaterThan(0).WithMessage("Party ID must be greater than 0.")

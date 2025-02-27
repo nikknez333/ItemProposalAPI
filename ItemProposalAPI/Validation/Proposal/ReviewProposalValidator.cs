@@ -26,6 +26,12 @@ namespace ItemProposalAPI.Validation.Proposal
                     valContext.RootContextData["User"] = user;
                     var proposal = valContext.RootContextData["ProposalToEvaluate"] as ItemProposalAPI.Models.Proposal;
 
+                    if (!proposal.Proposal_Status.Equals(Proposal_Status.Pending))
+                    {
+                        valContext.AddFailure("Proposal_Status", $"You cannot accept or reject a proposal with ID:{proposal.Id}, since it is already: {proposal.Proposal_Status}");
+                        return;
+                    }
+
                     if (proposal.UserId == user.Id)
                     {
                         if (dto.Response == Proposal_Status.Accepted)
@@ -79,7 +85,7 @@ namespace ItemProposalAPI.Validation.Proposal
                         .ToListAsync();
 
                     var involedPartyIds = involvedParties.Select(p => p.Id).ToList();
-                    var providedPartyIds = paymentRatios.Select(pr => pr.PartyId).ToList();
+                    var providedPartyIds = paymentRatios.Select(pr => pr.PartyId ?? -1).ToList();
 
                     if(!(providedPartyIds.Count == involedPartyIds.Count && !involedPartyIds.Except(providedPartyIds).Any()))
                     {

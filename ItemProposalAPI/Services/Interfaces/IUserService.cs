@@ -1,4 +1,5 @@
 ﻿using ItemProposalAPI.DTOs.Item;
+using ItemProposalAPI.DTOs.Proposal;
 using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Models;
 using ItemProposalAPI.QueryHelper;
@@ -10,6 +11,6 @@ namespace ItemProposalAPI.Services.Interfaces
     public interface IUserService
     {
         Task<Result<IEnumerable<ItemWithoutProposalsDto>>> GetMyPartyItemsAsync(ClaimsPrincipal User, QueryObject query);
-        Task<Result<UserDto>> GetMyProposals(ClaimsPrincipal User, PaginationObject pagination);
+        Task<Result<IEnumerable<ProposalDto>>> GetMyProposals(ClaimsPrincipal User, PaginationObject pagination);
     }
 }

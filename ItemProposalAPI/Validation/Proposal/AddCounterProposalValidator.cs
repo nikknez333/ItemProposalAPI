@@ -74,26 +74,28 @@ namespace ItemProposalAPI.Validation.Proposal
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Payment ratios must be provided.")
                 .WithMessage("Payment ratios for all involved parties must be included in the request.")
-                .MustAsync(HaveSamePaymentType).WithMessage("All payment ratios in a proposal must have the same payment type(either all Fixed or all Percentage).")
-                .MustAsync(IsValidPercentageTotal).WithMessage("The total of all payment ratios(percentages) must equal 100 %.")
-                /*.MustAsync(IsNewSetOfPaymentRatios).WithMessage("Your proposed set of payment ratios already exist, please provide new different set of payment ratios")*/
                 .MustAsync((dto, paymentRatios, valContext, token) => AllInvolvedPartiesHavePaymentRatios(dto, paymentRatios, valContext, token))
-                .WithMessage("Payment ratios for all involved parties must be included.");
+                .WithMessage("Payment ratios for all involved parties must be included.")
+                .MustAsync(HaveSamePaymentType).WithMessage("All payment ratios in a proposal must have the same payment type(either all Fixed or all Percentage).")
+                .MustAsync(IsValidPercentageTotal).WithMessage("The total of all payment ratios(percentages) must equal 100 %.");
+                /*.MustAsync(IsNewSetOfPaymentRatios).WithMessage("Your proposed set of payment ratios already exist, please provide new different set of payment ratios")*/
+                
 
             RuleForEach(p => p.PaymentRatios).ChildRules(pr =>
             {
                 pr.RuleFor(pr => pr.PartyId)
                     .Cascade(CascadeMode.Stop)
-                    .NotNull().WithMessage("Party ID is required.")
+                    .NotEmpty().WithMessage("Party ID is required.")
                     .GreaterThan(0).WithMessage("Party ID must be greater than 0.");
 
                 pr.RuleFor(pr => pr.PaymentType)
                     .Cascade(CascadeMode.Stop)
+                    .NotEmpty().WithMessage("Payment type is required.")
                     .IsInEnum().WithMessage("Invalid payment type. Allowed values: Fixed, Percentage.");
 
                 pr.RuleFor(pr => pr.PaymentAmount)
                     .Cascade(CascadeMode.Stop)
-                    .NotNull().WithMessage("Payment amount is required.")
+                    .NotEmpty().WithMessage("Payment amount is required.")
                     .GreaterThanOrEqualTo(0).WithMessage("Payment amount must be greater than 0.");
             });
         }
@@ -143,7 +145,7 @@ namespace ItemProposalAPI.Validation.Proposal
                 .ToListAsync();
 
             var involvedPartyIds = involvedParties.Select(p => p.Id).ToList();
-            var providedPartyIds = paymentRatios.Select(pr => pr.PartyId).ToList();
+            var providedPartyIds = paymentRatios.Select(pr => pr.PartyId ?? -1).ToList();
 
             return providedPartyIds.Count == involvedPartyIds.Count && !involvedPartyIds.Except(providedPartyIds).Any();
         }

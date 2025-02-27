@@ -17,7 +17,7 @@ namespace ItemProposalAPI.DataAccess
         //public DbSet<User> Users { get; set; }
         public DbSet<Party> Parties { get; set; }
         public DbSet<Item> Items { get; set; }
-        public DbSet<Proposal> Proposal { get; set; }
+        public DbSet<Proposal> Proposals { get; set; }
         public DbSet<ItemParty> ItemParties { get; set; }
         public DbSet<ProposalItemParty> ProposalItemParties { get; set; }
 
@@ -57,11 +57,14 @@ namespace ItemProposalAPI.DataAccess
             modelBuilder.Entity<ItemParty>()
                 .HasOne(ip => ip.Item)
                 .WithMany(i => i.ItemParties)
-                .HasForeignKey(ip => ip.ItemId);
+                .HasForeignKey(ip => ip.ItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<ItemParty>()
                 .HasOne(ip => ip.Party)
                 .WithMany(p => p.ItemParties)
-                .HasForeignKey(ip => ip.PartyId);
+                .HasForeignKey(ip => ip.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProposalItemParty>()
                 .HasKey(pip => new { pip.ProposalId, pip.ItemId, pip.PartyId });
@@ -69,18 +72,19 @@ namespace ItemProposalAPI.DataAccess
                 .HasOne(pip => pip.Proposal)
                 .WithMany(p => p.ProposalItemParties)
                 .HasForeignKey(pip => pip.ProposalId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<ProposalItemParty>()
                 .HasOne(pip => pip.ItemParty)
                 .WithMany(ip => ip.ProposalItemParties)
                 .HasForeignKey(pip => new { pip.ItemId, pip.PartyId })
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.ClientCascade);
 
             //recursive relationship between Proposal and Counter Proposal
             modelBuilder.Entity<Proposal>()
                 .HasOne(p => p.InitialProposal)
                 .WithMany(p => p.CounterProposals)
-                .HasForeignKey(p => p.CounterToProposalId);
+                .HasForeignKey(p => p.CounterToProposalId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             //Proposal constraint -> comment is optional for Initial Proposal, but mandatory for Counter Proposal
             modelBuilder.Entity<Proposal>()

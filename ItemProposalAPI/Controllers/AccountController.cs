@@ -34,7 +34,7 @@ namespace ItemProposalAPI.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <returns>Returns the authenticated user</returns>
+        /// <returns>Returns the authenticated user.</returns>
         /// <response code="200">Returns publicly available user account data and an authentication token if login is successfull.</response>
         /// <response code="400">Returns validation errors (e.g missing username or password).</response>
         /// <response code="401">Invalid login credentials (incorrect login or username).</response>
@@ -81,7 +81,7 @@ namespace ItemProposalAPI.Controllers
         /// <response code="400">Returns validation errors (e.g. invalid input, such as missing username/password or username already taken).</response>
         /// <response code="500">An unexpected error that occured while processing requst, such as role assignment failure or unexpected database error.</response>
         [HttpPost("register")]
-        [ProducesResponseType(typeof(UserAccountDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserAccountDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

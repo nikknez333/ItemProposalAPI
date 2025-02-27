@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using ItemProposalAPI.ClaimsExtension;
 using ItemProposalAPI.DTOs.Item;
+using ItemProposalAPI.DTOs.Proposal;
 using ItemProposalAPI.DTOs.User;
 using ItemProposalAPI.Mappers;
 using ItemProposalAPI.Models;
@@ -43,17 +44,22 @@ namespace ItemProposalAPI.Services.Service
             return Result<IEnumerable<ItemWithoutProposalsDto>>.Success(partyItemDTOs);
         }
 
-        public async Task<Result<UserDto>> GetMyProposals(ClaimsPrincipal User, PaginationObject pagination)
+        public async Task<Result<IEnumerable<ProposalDto>>> GetMyProposals(ClaimsPrincipal User, PaginationObject pagination)
         {
             var username = User.GetUsername();
-            if (username.Equals("Unknown Username"))
-                return Result<UserDto>.Failure(ErrorType.NotFound, $"Can't retireve logged in user");
 
             var user = await _userManager.FindByNameAsync(username);
-           
-            var userDto = user.ToUserDto();
+            if(user == null)
+                return Result<IEnumerable<ProposalDto>>.Failure(ErrorType.NotFound, $"Can't retireve logged in user");
 
-            return Result<UserDto>.Success(userDto);
+            var userProposals = await _unitOfWork.ProposalRepository.GetUserProposals(user.Id, pagination.PageNumber, pagination.PageSize);
+
+            if (userProposals == null || !userProposals.Any())
+                return Result<IEnumerable<ProposalDto>>.Failure(ErrorType.NotFound, $"User didn't made any proposal so far.");
+
+            var userProposalDto = userProposals.Select(p => p.ToProposalDto());
+
+            return Result<IEnumerable<ProposalDto>>.Success(userProposalDto);
         }
     }
 }

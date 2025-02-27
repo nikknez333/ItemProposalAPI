@@ -4,6 +4,7 @@ using ItemProposalAPI.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ItemProposalAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250226023457_Cascade_delete_v2")]
+    partial class Cascade_delete_v2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,7 @@ namespace ItemProposalAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Items", (string)null);
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("ItemProposalAPI.Models.ItemParty", b =>
@@ -58,7 +61,7 @@ namespace ItemProposalAPI.Migrations
 
                     b.HasIndex("PartyId");
 
-                    b.ToTable("ItemParties", (string)null);
+                    b.ToTable("ItemParties");
                 });
 
             modelBuilder.Entity("ItemProposalAPI.Models.Party", b =>
@@ -75,7 +78,7 @@ namespace ItemProposalAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parties", (string)null);
+                    b.ToTable("Parties");
                 });
 
             modelBuilder.Entity("ItemProposalAPI.Models.Proposal", b =>
@@ -114,7 +117,7 @@ namespace ItemProposalAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Proposals", null, t =>
+                    b.ToTable("Proposal", t =>
                         {
                             t.HasCheckConstraint("CK_Proposal_Comment_Required", "CounterToProposalId is NULL OR LEN(Comment) > 0");
                         });
@@ -151,7 +154,7 @@ namespace ItemProposalAPI.Migrations
 
                     b.HasIndex("ItemId", "PartyId");
 
-                    b.ToTable("ProposalItemParties", (string)null);
+                    b.ToTable("ProposalItemParties");
                 });
 
             modelBuilder.Entity("ItemProposalAPI.Models.User", b =>

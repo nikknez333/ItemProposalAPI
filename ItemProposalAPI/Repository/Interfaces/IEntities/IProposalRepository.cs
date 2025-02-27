@@ -8,5 +8,6 @@ namespace ItemProposalAPI.Repository.Interfaces.IEntities
     public interface IProposalRepository : IRepositoryGeneric<Proposal, int>
     {
         Task<IEnumerable<Proposal>?> GetNegotiationDetails(int itemId, int pageNumber = 1, int pageSize = 10);
+        Task<IEnumerable<Proposal>?> GetUserProposals(string userId, int pageNumber = 1, int pageSize = 10);
     }
 }
