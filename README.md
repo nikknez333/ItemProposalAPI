@@ -43,7 +43,7 @@ Otherwise, run:
   
 # 📖 API Documentation
 - The API is documented using Swagger/OpenAPI.
-- Access Swagger UI: https://localhost:7056/swagger
+- Access Swagger UI: https://localhost:7056
 - View endpoints, request & response formats, and test API calls interactively.
   
 # 📌 Considerations & Assumptions
