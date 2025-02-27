@@ -53,6 +53,12 @@ Otherwise, run:
 - There are 3 type of Users: Party Owner, Party Employee, Unemployed User.
 - Currently public registration allow registration for either Party Employee or Unemployed Users.
 - Party Owners are seeded to database after initial run of application.
+- For the purpose of testing the application these are theirs credentials:
+- 1. username: timCook3 password: CoO3im!TIM
+  2. username: sPichai881 password: piCHAI99?8
+  3. username: mArkZuck23 password: zuCkie?226
+  4. username: saTYaNadl115 password: 4_TYnadALL
+  5. username: sAmAlt331 password: AltMAN99!?
     
 # 💻 Tech Stack
 - .NET 8
